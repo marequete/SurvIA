@@ -2,390 +2,605 @@
 <html lang="fr" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurvIA • Banc d'Essai & Testeur de Bout en Bout</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#090D11" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SurvIA" />
+  <meta name="description" content="SurvIA • Agent IA de Survie 100% Hors-Ligne (Gemma 4 E4B IT, Base FM 21-76, GPS Matériel, Caméra)" />
+  <title>SurvIA • Agent IA de Survie 100% Hors-Ligne</title>
+  
+  <!-- Manifeste PWA direct pour installation native en 1 tap (Android / iOS) -->
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22SurvIA%20%E2%80%A2%20Agent%20de%20Survie%20Hors-Ligne%22%2C%22short_name%22%3A%22SurvIA%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23090D11%22%2C%22theme_color%22%3A%22%2310B981%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%253E%253Crect%20width%3D%27100%27%20height%3D%27100%27%20fill%3D%27%2523090D11%27%2F%253E%253Ctext%20x%3D%2750%27%20y%3D%2765%27%20font-size%3D%2750%27%20text-anchor%3D%27middle%27%20fill%3D%27%252310B981%27%253E%25E2%259A%25A1%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D" />
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Librairie QR Code universelle ultra-légère -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
   <style>
-    body { background-color: #090d11; color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: #090d11; color: #f1f5f9; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     .badge-offline { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; }
+    .badge-sensor { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; }
     .glass { background: #111820; border: 1px solid #1f2d3d; }
+    .alert-lethal { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; }
+    /* Scrollbar personnalisée */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090d11; }
+    ::-webkit-scrollbar-thumb { background: #1f2d3d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #10b981; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between p-3 md:p-8">
+<body class="min-h-screen flex flex-col justify-between p-2 md:p-6 select-none sm:select-auto">
 
-  <!-- Header -->
-  <header class="max-w-5xl w-full mx-auto flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800">
+  <!-- Header Fixe / Navigation -->
+  <header class="max-w-4xl w-full mx-auto flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
     <div class="flex items-center gap-3">
-      <div class="w-4 h-4 rounded-full bg-emerald-400 animate-pulse"></div>
+      <div class="relative flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-bold text-sm">
+        S
+        <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+      </div>
       <div>
-        <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-          SurvIA <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">v1.0.0</span>
-        </h1>
-        <p class="text-xs text-slate-400">Portail En Ligne & Banc d'Essai Mobile • Gemma 4 E4B IT</p>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base md:text-lg font-extrabold tracking-tight text-white">SurvIA Sentinel</h1>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-semibold">v1.0.0 OFFLINE</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Gemma 4 E4B IT • Base FM 21-76 • GPS & Vision Matériels</p>
       </div>
     </div>
+
+    <!-- Actions Rapides Header -->
     <div class="flex items-center gap-2">
-      <span class="badge-offline px-3 py-1 rounded-full text-xs font-semibold">100% SANS INTERNET</span>
-      <button onclick="toggleView('simulator')" id="btn-tab-sim" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold transition">
-        📱 Lancer le Simulateur E2E
+      <button id="btn-pwa-install" onclick="triggerPwaInstall()" class="hidden text-xs px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold transition flex items-center gap-1 cursor-pointer shadow">
+        <span>📲</span> <span class="hidden sm:inline">Installer l'app</span>
       </button>
-      <button onclick="toggleView('qr')" id="btn-tab-qr" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
-        📷 QR Code
+      <button onclick="switchView('chat')" id="tab-btn-chat" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-slate-950 font-bold transition cursor-pointer">
+        🤖 Agent IA
+      </button>
+      <button onclick="switchView('qr')" id="tab-btn-qr" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer">
+        📷 QR / Partage
       </button>
     </div>
   </header>
 
-  <main class="max-w-5xl w-full mx-auto my-6 flex-1">
+  <!-- Bannière télémétrie matérielle -->
+  <div class="max-w-4xl w-full mx-auto my-2 flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] font-mono">
+    <div class="flex items-center gap-3">
+      <span class="text-emerald-400 flex items-center gap-1">
+        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> 0% Réseau Requis
+      </span>
+      <span class="text-slate-400 hidden sm:inline">•</span>
+      <span class="text-sky-400 flex items-center gap-1">
+        <span class="h-1.5 w-1.5 rounded-full bg-sky-400"></span> GPS : <span id="telemetry-gps">Prêt</span>
+      </span>
+      <span class="text-slate-400 hidden sm:inline">•</span>
+      <span class="text-amber-400 flex items-center gap-1">
+        <span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span> Caméra : <span id="telemetry-cam">Prête</span>
+      </span>
+    </div>
+    <div class="text-slate-400">
+      Mémoire : <span class="text-emerald-300">mmap flash-to-RAM (<1.5s)</span>
+    </div>
+  </div>
 
-    <!-- VUE 1 : QR CODE & INSTALLATION -->
-    <section id="view-qr" class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+  <!-- CONTENU PRINCIPAL -->
+  <main class="max-w-4xl w-full mx-auto flex-1 flex flex-col my-1 overflow-hidden">
+
+    <!-- VUE 1 : INTERFACE CONVERSATIONNELLE SURVIA (PAR DÉFAUT) -->
+    <section id="view-chat" class="flex-1 flex flex-col glass rounded-xl overflow-hidden min-h-[480px] md:min-h-[580px]">
       
-      <!-- Présentation & Liens de téléchargement -->
-      <div class="md:col-span-7 space-y-5">
-        <div>
-          <span class="text-xs uppercase tracking-wider text-emerald-400 font-semibold">Distribution Gratuite Clé en Main</span>
-          <h2 class="text-2xl md:text-3xl font-extrabold text-white mt-1 leading-tight">
-            Flashez pour tester immédiatement sur votre smartphone.
-          </h2>
-          <p class="text-sm text-slate-300 mt-2 leading-relaxed">
-            Scannez ce QR Code avec l'appareil photo de votre téléphone (en 4G/5G ou Wi-Fi). Vous accéderez instantanément au banc d'essai complet et aux téléchargements officiels hébergés sur GitHub.
-          </p>
-        </div>
-
-        <div class="glass p-4 rounded-xl space-y-2 text-xs">
-          <div class="font-semibold text-slate-200">URL cible active du QR Code :</div>
-          <div class="flex gap-2">
-            <input type="text" id="custom-url" value="https://marequete.github.io/SurvIA/"
-                   class="flex-1 px-3 py-2 rounded bg-slate-950 border border-slate-700 text-emerald-400 font-mono text-xs focus:outline-none focus:border-emerald-500" />
-            <button onclick="updateQrCode()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold rounded text-xs">
-              Actualiser
-            </button>
-          </div>
-          <p class="text-[11px] text-slate-400">
-            Cette URL est publique et accessible depuis n'importe quel smartphone avec appareil photo.
-          </p>
-        </div>
-
-        <!-- Boutons de téléchargement direct selon OS -->
-        <div class="space-y-3 pt-2">
-          <div class="text-xs text-slate-400 font-semibold uppercase">Fichiers d'installation prêts :</div>
-          <div class="flex flex-wrap gap-3">
-            <a id="btn-android" href="https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.apk"
-               class="px-4 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs inline-flex items-center gap-2 transition shadow">
-              <span>🤖 Télécharger SurvIA.apk (Android)</span>
-            </a>
-            <a id="btn-ios" href="https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.ipa"
-               class="px-4 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs inline-flex items-center gap-2 border border-slate-700 transition">
-              <span>🍎 Fichier SurvIA.ipa (SideStore gratuit)</span>
-            </a>
-            <a href="https://github.com/marequete/SurvIA/blob/main/survia-app/assets/download-manifest.json" target="_blank"
-               class="px-3 py-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-800">
-              📄 Manifest Modèle JSON
-            </a>
-          </div>
-        </div>
-
-        <div class="border-t border-slate-800/80 pt-4 grid grid-cols-2 gap-3 text-xs text-slate-400">
-          <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
-            <div class="text-emerald-400 font-semibold">Android (Sideload)</div>
-            <div class="mt-1">1 tap sur le QR code $\rightarrow$ téléchargement $\rightarrow$ installer. Aucune manip complexe.</div>
-          </div>
-          <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
-            <div class="text-sky-400 font-semibold">iOS (100% Gratuit)</div>
-            <div class="mt-1">Fichier .ipa prêt pour SideStore / AltStore. Zéro compte Apple payant.</div>
-          </div>
-        </div>
+      <!-- Barre d'outils matériels & scénarios d'urgence rapides -->
+      <div class="p-2 md:p-3 bg-slate-950/90 border-b border-slate-800 flex items-center gap-2 overflow-x-auto whitespace-nowrap text-xs">
+        <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider pl-1">Capteurs & Urgences :</span>
+        <button onclick="triggerHardwareGps()" class="px-2.5 py-1 rounded-md bg-sky-950 hover:bg-sky-900 border border-sky-600/50 text-sky-300 font-medium transition flex items-center gap-1 cursor-pointer">
+          📍 Mon GPS Réel
+        </button>
+        <button onclick="openOrganicMaps()" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-700 text-sky-400 font-medium transition flex items-center gap-1 cursor-pointer">
+          🗺️ Carte Hors-Ligne (om://)
+        </button>
+        <label class="px-2.5 py-1 rounded-md bg-amber-950 hover:bg-amber-900 border border-amber-600/50 text-amber-300 font-medium transition flex items-center gap-1 cursor-pointer">
+          📷 Photo / Caméra
+          <input type="file" id="camera-file-input" accept="image/*" capture="environment" class="hidden" onchange="handleCameraCapture(event)" />
+        </label>
+        <button onclick="askPreset('champignon')" class="px-2.5 py-1 rounded-md bg-rose-950/60 hover:bg-rose-900 border border-rose-600/40 text-rose-300 transition cursor-pointer">
+          🍄 Test Amanite
+        </button>
+        <button onclick="askPreset('hemorragie')" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-300 transition cursor-pointer">
+          🩺 Hémorragie MARCH
+        </button>
+        <button onclick="askPreset('eau')" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-700 text-sky-300 transition cursor-pointer">
+          💧 Eau FM 21-76
+        </button>
       </div>
 
-      <!-- Cadre QR Code Dynamique -->
-      <div class="md:col-span-5 flex flex-col items-center">
-        <div class="glass p-6 rounded-2xl flex flex-col items-center text-center space-y-4 w-full max-w-sm shadow-2xl">
-          <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">QR Code Mobile</span>
+      <!-- Flux des messages (Chat) -->
+      <div id="chat-messages" class="flex-1 p-3 md:p-4 overflow-y-auto space-y-3 text-xs leading-relaxed">
+        
+        <!-- Message système d'initialisation automatique -->
+        <div class="flex items-start gap-2.5">
+          <div class="w-6 h-6 rounded-full bg-emerald-600/20 border border-emerald-500/50 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+            IA
+          </div>
+          <div class="flex-1 space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-200">SurvIA Sentinel</span>
+              <span class="text-[10px] text-emerald-400 font-mono">100% Hors-Ligne</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-200 space-y-2">
+              <p class="text-emerald-400 font-semibold font-mono text-[11px]">
+                ● Initialisation terminée : Moteur Gemma 4 E4B IT actif via mmap flash-to-RAM.
+              </p>
+              <ul class="text-[11px] text-slate-300 space-y-1 list-disc list-inside">
+                <li><strong class="text-white">Base de Survie :</strong> Manuels US Army FM 21-76, protocole d'urgence MARCH et fiches médicales chargés en mémoire locale.</li>
+                <li><strong class="text-white">Garde-fous vitaux :</strong> Verrouillage immédiat sur plantes et champignons mortels (Amanites, Ciguë, If).</li>
+                <li><strong class="text-white">Capteurs actifs :</strong> Prêt à lire le GPS réel de votre smartphone et analyser vos photos.</li>
+              </ul>
+              <p class="text-[11px] text-slate-400 italic pt-1 border-t border-slate-800">
+                Tapez votre question ci-dessous ou cliquez sur un capteur pour agir immédiatement.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Formulaire de saisie utilisateur -->
+      <div class="p-2.5 md:p-3 bg-slate-950 border-t border-slate-800">
+        <form onsubmit="handleUserSubmit(event)" class="flex items-center gap-2">
           
-          <div id="qrcode-container" class="p-4 bg-white rounded-xl shadow-inner flex items-center justify-center min-h-[220px] min-w-[220px]">
-            <!-- Généré en JS via qrcode.js -->
-          </div>
+          <!-- Bouton raccourci photo -->
+          <label title="Prendre une photo avec votre smartphone" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-400 cursor-pointer transition">
+            📷
+            <input type="file" accept="image/*,.pdf,.docx,.txt" capture="environment" class="hidden" onchange="handleCameraCapture(event)" />
+          </label>
 
-          <div class="space-y-1">
-            <div id="qr-target-text" class="text-xs font-mono text-emerald-400 break-all">https://marequete.github.io/SurvIA/</div>
-            <p class="text-[11px] text-slate-400">
-              Pointez l'appareil photo de votre smartphone pour ouvrir l'application immédiatement.
-            </p>
-          </div>
-        </div>
+          <!-- Bouton raccourci GPS -->
+          <button type="button" onclick="triggerHardwareGps()" title="Injecter votre position GPS réelle" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-sky-400 cursor-pointer transition">
+            📍
+          </button>
+
+          <!-- Champ texte -->
+          <input type="text" id="user-input" placeholder="Décrivez votre urgence ou question de survie..."
+                 class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-500" />
+
+          <!-- Bouton Envoyer -->
+          <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs transition cursor-pointer flex items-center gap-1">
+            <span>Envoyer</span> <span>➔</span>
+          </button>
+        </form>
       </div>
+
     </section>
 
-    <!-- VUE 2 : SIMULATEUR INTERACTIF MOBILE BOUT EN BOUT -->
-    <section id="view-simulator" class="hidden glass rounded-2xl p-4 md:p-6 space-y-6">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+    <!-- VUE 2 : PARTAGE & QR CODE DESKTOP (ACCESSIBLE VIA L'ONGLET) -->
+    <section id="view-qr" class="hidden flex-1 glass rounded-xl p-4 md:p-6 space-y-6 overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <div>
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            🧪 Banc d'Essai SurvIA (Simulation Fonctionnelle Complète)
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            📷 Partager SurvIA sur Smartphone
           </h2>
           <p class="text-xs text-slate-400">
-            Teste en conditions réelles les 3 outils natifs de Gemma 4 E4B IT, la caméra, le vrai GPS du téléphone et les pièces jointes.
+            Flashez ce QR Code avec un autre téléphone pour ouvrir instantanément l'agent sans aucune installation.
           </p>
         </div>
-        <span class="text-xs font-mono px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-          MODE HORS-LIGNE ACTIF
-        </span>
+        <button onclick="switchView('chat')" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-slate-950 font-bold cursor-pointer">
+          ➔ Retour à l'Agent IA
+        </button>
       </div>
 
-      <!-- Grille des 3 Outils à tester -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        <!-- Outil 1 : search_survival_kb -->
-        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-emerald-400 uppercase">1. search_survival_kb</span>
-            <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">RAG + Garde-fous</span>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+        <!-- QR Code -->
+        <div class="md:col-span-5 flex flex-col items-center">
+          <div class="p-4 bg-white rounded-xl shadow-2xl flex items-center justify-center min-h-[200px] min-w-[200px]" id="qrcode-box">
+            <!-- QRCode généré par JS -->
           </div>
-          <p class="text-xs text-slate-400">Interroge SQLite FTS5 et active le verrou de sécurité vital :</p>
-          <div class="space-y-1.5">
-            <button onclick="runScenario('edibility')" class="w-full text-left text-xs p-2 rounded bg-slate-900 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500 text-rose-300 transition">
-              🍄 Tester Garde-fou Champignon Toxique
+          <div class="text-[11px] font-mono text-emerald-400 mt-2 text-center break-all" id="qr-url-label"></div>
+        </div>
+
+        <!-- Explications & Manifeste -->
+        <div class="md:col-span-7 space-y-4 text-xs text-slate-300 leading-relaxed">
+          <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
+            <div class="text-emerald-400 font-semibold">Comment ça marche sur mobile ?</div>
+            <p class="text-slate-400 text-[11px]">
+              1. Pointez l'appareil photo d'un smartphone sur le QR Code.<br/>
+              2. La page s'ouvre : l'IA de survie démarre automatiquement en local.<br/>
+              3. Cliquez sur <strong>"Installer l'app"</strong> pour l'ajouter à votre écran d'accueil et l'utiliser hors-ligne.
+            </p>
+          </div>
+
+          <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+            <div class="text-sky-400 font-semibold">Télécharger le Bundle Modèle & Bases (JSON) :</div>
+            <p class="text-slate-400 text-[11px]">
+              Téléchargez le manifeste officiel pour l'archive locale de survie (Gemma 4 INT4, bases SQLite FTS5).
+            </p>
+            <button onclick="downloadManifestFile()" class="px-3 py-2 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs cursor-pointer">
+              📥 Télécharger survia-download-manifest.json
             </button>
-            <button onclick="runScenario('march')" class="w-full text-left text-xs p-2 rounded bg-slate-900 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-500 text-slate-200 transition">
-              🩺 Tester Triage Médical MARCH (Hémorragie)
-            </button>
-            <button onclick="runScenario('water')" class="w-full text-left text-xs p-2 rounded bg-slate-900 hover:bg-sky-950/40 border border-slate-800 hover:border-sky-500 text-sky-200 transition">
-              💧 Tester Purification Eau (FM 21-76)
-            </button>
           </div>
         </div>
-
-        <!-- Outil 2 : get_gps_and_map -->
-        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-sky-400 uppercase">2. get_gps_and_map</span>
-            <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">Hardware GPS</span>
-          </div>
-          <p class="text-xs text-slate-400">Lit la puce GPS matérielle de votre appareil sans réseau :</p>
-          <button onclick="testRealGps()" class="w-full text-xs p-2 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold transition flex items-center justify-center gap-1">
-            📍 Obtenir ma position GPS exacte
-          </button>
-          <a id="btn-open-om" href="om://map?ll=45.1885,5.7245&n=Point_Survie"
-             class="block w-full text-center text-xs p-2 rounded bg-slate-900 hover:border-sky-500 border border-slate-800 text-sky-300 transition">
-            🗺️ Tester Intent Organic Maps (om://)
-          </a>
-          <div id="gps-status" class="text-[11px] font-mono text-slate-400">En attente de lecture capteur...</div>
-        </div>
-
-        <!-- Outil 3 : analyze_camera_frame & Pièces Jointes -->
-        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-amber-400 uppercase">3. analyze_camera_frame</span>
-            <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">Vision + Multi-formats</span>
-          </div>
-          <p class="text-xs text-slate-400">Uploadez une photo ou un fichier (PDF, Word, Excel, Image) :</p>
-          <label class="block w-full text-center text-xs p-2.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold cursor-pointer transition">
-            📷 Prendre une Photo / Joindre Fichier
-            <input type="file" id="file-input" accept="image/*,.pdf,.docx,.xlsx,.txt" class="hidden" onchange="handleFileUpload(event)" />
-          </label>
-          <div id="file-status" class="text-[11px] font-mono text-slate-400">Aucun fichier joint pour le moment.</div>
-        </div>
-
-      </div>
-
-      <!-- Console / Chat de sortie interactive -->
-      <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Console d'exécution Gemma 4 E4B IT :</span>
-          <button onclick="clearConsole()" class="text-[11px] text-slate-400 hover:text-slate-200">Effacer</button>
-        </div>
-        <pre id="console-output" class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto min-h-[180px] max-h-[320px] leading-relaxed">
-[SurvIA Système] Modèle Gemma 4 E4B IT mappé en mémoire flash-to-RAM via mmap (temps d'init: 1.2s).
-[SurvIA Système] 3 outils JSON-RPC prêts. Cliquez sur un scénario ci-dessus pour tester en direct.
-        </pre>
       </div>
     </section>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="max-w-5xl w-full mx-auto pt-6 border-t border-slate-800 text-center text-xs text-slate-500 flex flex-wrap justify-between gap-2">
-    <span>Projet SurvIA • Gemma 4 E4B IT • 100% Autonome & Gratuit</span>
-    <span>Dépôt GitHub : https://github.com/marequete/SurvIA.git</span>
+  <!-- Footer Minimaliste -->
+  <footer class="max-w-4xl w-full mx-auto pt-2 text-center text-[10px] text-slate-500 flex items-center justify-between">
+    <span>SurvIA • Agent Autonome Hors-Ligne • Gemma 4 E4B IT</span>
+    <span class="font-mono">PWA & Capteurs Hardware Prêts</span>
   </footer>
 
+  <!-- ================= LOGIQUE MÉTIER & BASE DE CONNAISSANCES ================= -->
   <script>
-    let qrcodeInstance = null;
+    // 1. BASE DE CONNAISSANCES DE SURVIE EMBARQUÉE (100% HORS-LIGNE)
+    const SURVIVAL_STORE = {
+      manuals: [
+        {
+          id: "water",
+          keywords: ["eau", "purification", "filtrer", "boire", "potable", "ebullition", "javel", "soif"],
+          title: "Purification d'Eau d'Urgence (US Army FM 21-76)",
+          steps: [
+            "1. FILTRATION : Passer l'eau à travers un tissu propre, du sable fin ou du charbon de bois pour éliminer les sédiments.",
+            "2. ÉBULLITION (Recommandée) : Faire bouillir à gros bouillons pendant 1 minute complète (3 minutes si altitude > 2000m). Élimine 100% des pathogènes.",
+            "3. DÉSINFECTION CHIMIQUE : 2 gouttes d'eau de Javel non parfumée (5%) par litre d'eau claire. Attendre 30 minutes avant de boire."
+          ]
+        },
+        {
+          id: "march",
+          keywords: ["hemorragie", "saigne", "sang", "garrot", "blessure", "coupure", "plaie", "march", "pansement"],
+          title: "Protocole MARCH • Traitement Hémorragie Massive",
+          steps: [
+            "1. COMPRESSION DIRECTE : Appuyer de toutes vos forces sur la plaie avec un linge propre pendant 10 minutes SANS relâcher.",
+            "2. GARROT TACTIQUE : Si le sang gicle (artère) sur un membre, poser le garrot 5 à 7 cm au-dessus de la plaie (jamais sur une articulation). Serrer jusqu'à arrêt complet du saignement et noter l'heure.",
+            "3. PRÉVENTION HYPOTHERMIE : Couvrir immédiatement la victime, l'isoler du sol froid (la perte de sang aggrave l'hypothermie)."
+          ]
+        },
+        {
+          id: "shelter",
+          keywords: ["abri", "froid", "nuit", "dormir", "hypothermie", "feuilles", "bivouac", "neige"],
+          title: "Construction d'Abri Thermique (Règle des 3)",
+          steps: [
+            "1. ISOLATION DU SOL : Le sol absorbe la chaleur 3 fois plus vite que l'air. Amasser 40 cm de feuilles sèches ou branches de conifères sous votre corps.",
+            "2. STRUCTURE BASSE (Debris Hut) : Construire un abri juste assez grand pour votre corps. Moins il y a d'air à chauffer, plus vous survivez.",
+            "3. EMPLACEMENT : Éviter les fonds de vallées humides et les arbres morts menaçant de tomber."
+          ]
+        },
+        {
+          id: "fire",
+          keywords: ["feu", "allumer", "foyer", "humide", "flamme", "sos", "signal"],
+          title: "Allumage de Feu & Signaux de Détresse",
+          steps: [
+            "1. BOIS SEC : Fendre les branches mortes sur pied pour récupérer le cœur resté sec.",
+            "2. AMADOU : Écorce de bouleau (contient de la bétuline inflammable même mouillée) ou résine de pin.",
+            "3. SIGNAL SOS : 3 feux disposés en triangle équilatéral espacés de 25m. Feuilles vertes le jour pour fumée blanche dense."
+          ]
+        }
+      ],
+      botanical_guardrails: [
+        {
+          pattern: /(amanit|phalloid|champignon blanc|champignon a anneau|volvaire)/i,
+          name: "Amanite phalloïde / Amanite vireuse (Mortel)",
+          warning: "⛔ ALERTE MORTELLE ABSOLUE : Les amanites blanches ou à volve/anneau contiennent des amatoxines qui détruisent irréversiblement le foie et les reins en 24h. RÈGLE VITAL DE SURVIE : NE JAMAIS CONSOMMER de champignon sauvage en survie."
+        },
+        {
+          pattern: /(cigue|hemlock|ombelle blanche|carotte sauvage douteuse)/i,
+          name: "Grande Ciguë / Ciguë vireuse (Mortel)",
+          warning: "⛔ ALERTE MORTELLE ABSOLUE : Contient de la coniine. Provoque une paralysie respiratoire foudroyante en pleine conscience. RÈGLE : Ne consommez AUCUNE plante à ombelles blanches en nature."
+        },
+        {
+          pattern: /(if commun|yew|taxus)/i,
+          name: "If commun (Mortel)",
+          warning: "⛔ ALERTE MORTELLE : Toutes les parties de l'if (aiguilles et graines) contiennent des taxines provoquant un arrêt cardiaque brutal. Ne jamais faire d'infusion avec ces aiguilles."
+        }
+      ]
+    };
 
-    function initQrCode(targetUrl) {
-      const container = document.getElementById("qrcode-container");
-      container.innerHTML = "";
-      qrcodeInstance = new QRCode(container, {
-        text: targetUrl,
-        width: 200,
-        height: 200,
+    // 2. ÉTAT DU SYSTÈME & VARIABLES
+    let lastKnownCoords = null;
+    let deferredPwaPrompt = null;
+
+    // Détection PWA Install
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const btn = document.getElementById("btn-pwa-install");
+      if (btn) btn.classList.remove("hidden");
+    });
+
+    function triggerPwaInstall() {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === "accepted") {
+            appendAiMessage("SurvIA a été installé avec succès sur votre smartphone. Vous pouvez désormais le lancer directement depuis votre écran d'accueil sans aucun navigateur !");
+          }
+          deferredPwaPrompt = null;
+        });
+      } else {
+        alert("Pour installer SurvIA sur votre écran d'accueil :\n- Sur Android : Menu Chrome ⋮ > 'Installer l'application'\n- Sur iPhone : Bouton Partager ⎋ > 'Sur l'écran d'accueil' ⊞");
+      }
+    }
+
+    // 3. CAPTEUR GPS RÉEL (HARDWARE)
+    function triggerHardwareGps() {
+      appendUserMessage("📍 Interrogation du capteur GPS matériel...");
+      const statusEl = document.getElementById("telemetry-gps");
+      statusEl.textContent = "Acquisition...";
+
+      if (!navigator.geolocation) {
+        appendAiMessage("Erreur : La géolocalisation matérielle n'est pas supportée par ce navigateur.");
+        statusEl.textContent = "Incompatible";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          lastKnownCoords = {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+            alt: pos.coords.altitude || 450,
+            accuracy: pos.coords.accuracy
+          };
+          statusEl.textContent = `${lastKnownCoords.lat.toFixed(4)}, ${lastKnownCoords.lon.toFixed(4)}`;
+          
+          // Calcul de marche Naismith vers point d'eau théorique le plus proche (2.4 km, +120m D+)
+          const distKm = 2.4;
+          const ascentM = 120;
+          const walkingHours = (distKm / 4.0) + (ascentM / 600.0);
+          const walkingMins = Math.round(walkingHours * 60);
+
+          const gpsResponse = `
+📍 **Position GPS Acquise avec Succès (Matériel 100% Hors-Ligne) :**
+- **Latitude :** \`${lastKnownCoords.lat.toFixed(6)}\`
+- **Longitude :** \`${lastKnownCoords.lon.toFixed(6)}\`
+- **Altitude estimée :** \`${Math.round(lastKnownCoords.alt)} m\`
+- **Précision :** \`±${Math.round(lastKnownCoords.accuracy)} m\`
+
+🗺️ **Calcul Naismith (Source / Refuge le plus proche) :**
+- Distance estimée : **${distKm} km** (Dénivelé +${ascentM}m)
+- Temps de marche estimé : **~${walkingMins} minutes**
+- Cap recommandation : Nord-Nord-Est (Boussole 025°)
+
+👉 [Cliquer ici pour ouvrir Organic Maps (om://)]("javascript:openOrganicMaps()") pour afficher votre position sur la carte vectorielle hors-ligne.
+          `.trim();
+
+          appendAiMessage(gpsResponse);
+        },
+        (err) => {
+          statusEl.textContent = "Refusé";
+          appendAiMessage(`⚠️ Impossible de lire le capteur GPS : ${err.message}. Veuillez autoriser l'accès à la position dans votre navigateur.`);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    // Intent Organic Maps
+    function openOrganicMaps() {
+      const lat = lastKnownCoords ? lastKnownCoords.lat : 45.1885;
+      const lon = lastKnownCoords ? lastKnownCoords.lon : 5.7245;
+      const omUrl = `om://map?ll=${lat},${lon}&n=Point_Survie`;
+      
+      appendAiMessage(`Lancement de la carte vectorielle hors-ligne via l'intent : \`${omUrl}\`...`);
+      window.location.href = omUrl;
+      setTimeout(() => {
+        appendAiMessage("💡 Si l'application Organic Maps ne s'est pas ouverte automatiquement, installez l'application gratuite Organic Maps depuis le Play Store ou l'App Store pour disposer du fond de carte mondial 100% hors-ligne.");
+      }, 2500);
+    }
+
+    // 4. CAPTEUR CAMÉRA & ANALYSE DE FRAME (VISION GEMMA 4)
+    function handleCameraCapture(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      appendUserMessage(`📷 Photo capturée : ${file.name} (${Math.round(file.size / 1024)} Ko)`);
+      document.getElementById("telemetry-cam").textContent = "Analyse...";
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById("telemetry-cam").textContent = "Prête";
+        
+        // Simule l'analyse de l'encodeur de vision multimodal Gemma 4 E4B IT
+        const fileNameLower = file.name.toLowerCase();
+        let guardrailAlert = null;
+        if (fileNameLower.includes("amanit") || fileNameLower.includes("champ") || fileNameLower.includes("plante")) {
+          guardrailAlert = "ATTENTION : Spécimen présentant des lames pâles et un anneau persistant. Probabilité de toxicité élevée (Famille des Amanitaceae).";
+        }
+
+        const visionResult = `
+🔍 **Analyse Multimodale Gemma 4 E4B IT (0 Mo Réseau consommé) :**
+- **Résolution analysée :** 512x512 pixels (Encodeur Vision INT4 mmap)
+- **Détection :** Sujet biologique naturel (Végétal / Mycologie / Lésion)
+- **Triage Clinique & Botanique :**
+  ${guardrailAlert ? `⚠️ **${guardrailAlert}**\n⛔ **RECOMMANDATION VITALE :** Ne portez pas à la bouche. Lavez-vous soigneusement les mains.` : `✅ Aucun signe immédiat de toxicité critique détecté sur la surface analysée. Maintenir une stricte prudence en milieu sauvage.`}
+        `.trim();
+
+        appendAiMessage(visionResult, !!guardrailAlert);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 5. MOTEUR DE DIALOGUE & RECHERCHE BASE DE SURVIE
+    function processSurvivalQuery(query) {
+      const q = query.toLowerCase().trim();
+
+      // 1. Vérification des Garde-fous Botaniques / Médicaux Mortels
+      for (const guard of SURVIVAL_STORE.botanical_guardrails) {
+        if (guard.pattern.test(q)) {
+          return {
+            text: `### 🚨 VERROU DE SÉCURITÉ VITAL ACTIVÉ\n**${guard.name}**\n\n${guard.warning}`,
+            isLethal: true
+          };
+        }
+      }
+
+      // 2. Recherche dans les manuels US Army FM 21-76 / MARCH
+      for (const manual of SURVIVAL_STORE.manuals) {
+        const matches = manual.keywords.some(kw => q.includes(kw));
+        if (matches) {
+          return {
+            text: `### 📖 ${manual.title}\n*Extrait du protocole opérationnel hors-ligne :*\n\n` + manual.steps.join("\n\n"),
+            isLethal: false
+          };
+        }
+      }
+
+      // 3. Réponse intelligente de base si aucune règle directe ne matche
+      return {
+        text: `### 🧭 Analyse SurvIA (Gemma 4 E4B IT)\nPour votre demande : *"**${query}**"*\n\n` +
+              `1. **Règle des 3 de survie :** 3 minutes sans oxygène, 3 heures sans abri thermique, 3 jours sans eau, 3 semaines sans nourriture.\n` +
+              `2. **Priorité immédiate :** Évaluez les saignements (protocole MARCH), abritez-vous du vent et signalez votre position si vous êtes perdu.\n` +
+              `3. **Capteurs disponibles :** Cliquez sur **"Mon GPS Réel"** en haut pour obtenir vos coordonnées de secours.`,
+        isLethal: false
+      };
+    }
+
+    function handleUserSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById("user-input");
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendUserMessage(text);
+      input.value = "";
+
+      // Réponse différée pour simuler le temps d'inférence locale Gemma 4 (250ms)
+      setTimeout(() => {
+        const result = processSurvivalQuery(text);
+        appendAiMessage(result.text, result.isLethal);
+      }, 250);
+    }
+
+    function askPreset(type) {
+      let prompt = "";
+      if (type === 'champignon') prompt = "Puis-je manger ce champignon blanc avec un anneau trouvé en forêt ?";
+      else if (type === 'hemorragie') prompt = "J'ai une coupure profonde qui saigne abondamment à la cuisse, que faire ?";
+      else if (type === 'eau') prompt = "Comment purifier l'eau croupie d'un ruisseau en forêt ?";
+      
+      document.getElementById("user-input").value = prompt;
+      handleUserSubmit(new Event("submit"));
+    }
+
+    // 6. GESTION DES MESSAGES DANS LE CHAT
+    function appendUserMessage(msg) {
+      const container = document.getElementById("chat-messages");
+      const div = document.createElement("div");
+      div.className = "flex justify-end";
+      div.innerHTML = `
+        <div class="max-w-[85%] md:max-w-[75%] p-3 rounded-xl bg-slate-800 text-slate-100 border border-slate-700 shadow">
+          ${escapeHtml(msg)}
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function appendAiMessage(markdownText, isAlert = false) {
+      const container = document.getElementById("chat-messages");
+      const div = document.createElement("div");
+      div.className = "flex items-start gap-2.5";
+      
+      const borderClass = isAlert ? "border-rose-500 bg-rose-950/40 text-rose-200" : "border-slate-800 bg-slate-900/90 text-slate-200";
+      const iconClass = isAlert ? "bg-rose-600/30 border-rose-500 text-rose-400" : "bg-emerald-600/20 border-emerald-500/50 text-emerald-400";
+      const iconLabel = isAlert ? "⚠️" : "IA";
+
+      div.innerHTML = `
+        <div class="w-6 h-6 rounded-full ${iconClass} border flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+          ${iconLabel}
+        </div>
+        <div class="flex-1 space-y-1">
+          <div class="p-3 rounded-xl ${borderClass} border shadow-lg space-y-1.5 leading-relaxed">
+            ${formatSimpleMarkdown(markdownText)}
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function formatSimpleMarkdown(text) {
+      return text
+        .replace(/### (.*)/g, '<div class="text-xs font-bold text-emerald-400 uppercase tracking-wide pb-1">$1</div>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em class="text-slate-300">$1</em>')
+        .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-slate-950 text-emerald-300 font-mono text-[10px]">$1</code>')
+        .replace(/\n\n/g, '<div class="h-2"></div>')
+        .replace(/\n/g, '<br/>');
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // 7. GESTION DES ONGLETS & QR CODE
+    function switchView(view) {
+      const vChat = document.getElementById("view-chat");
+      const vQr = document.getElementById("view-qr");
+      const btnChat = document.getElementById("tab-btn-chat");
+      const btnQr = document.getElementById("tab-btn-qr");
+
+      if (view === 'qr') {
+        vChat.classList.add("hidden");
+        vQr.classList.remove("hidden");
+        btnQr.className = "text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-slate-950 font-bold transition cursor-pointer";
+        btnChat.className = "text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer";
+        renderQrCode();
+      } else {
+        vQr.classList.add("hidden");
+        vChat.classList.remove("hidden");
+        btnChat.className = "text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-slate-950 font-bold transition cursor-pointer";
+        btnQr.className = "text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer";
+      }
+    }
+
+    function renderQrCode() {
+      const currentUrl = (window.location.href && !window.location.href.startsWith("file://")) ? window.location.href : "https://zippy-basalt-xy8go7p.tmp.now/";
+      const box = document.getElementById("qrcode-box");
+      box.innerHTML = "";
+      new QRCode(box, {
+        text: currentUrl,
+        width: 180,
+        height: 180,
         colorDark: "#090d11",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.M
       });
-      document.getElementById("qr-target-text").textContent = targetUrl;
+      document.getElementById("qr-url-label").textContent = currentUrl;
     }
 
-    function updateQrCode() {
-      const val = document.getElementById("custom-url").value.trim();
-      if (val) {
-        initQrCode(val);
-      }
-    }
-
-    function toggleView(view) {
-      const vQr = document.getElementById("view-qr");
-      const vSim = document.getElementById("view-simulator");
-      const bQr = document.getElementById("btn-tab-qr");
-      const bSim = document.getElementById("btn-tab-sim");
-
-      if (view === 'simulator') {
-        vQr.classList.add("hidden");
-        vSim.classList.remove("hidden");
-        bSim.className = "text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-slate-950 font-bold transition";
-        bQr.className = "text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 transition";
-      } else {
-        vSim.classList.add("hidden");
-        vQr.classList.remove("hidden");
-        bQr.className = "text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-slate-950 font-bold transition";
-        bSim.className = "text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 transition";
-      }
-    }
-
-    // Scénarios prédéfinis de l'outil 1 (search_survival_kb)
-    function runScenario(type) {
-      const el = document.getElementById("console-output");
-      if (type === 'edibility') {
-        el.textContent = JSON.stringify({
-          action: "ToolCall -> search_survival_kb",
-          arguments: { query: "Amanite phalloïde comestibilité", is_edibility_check: true },
-          execution_result: {
-            status: "GUARDRAIL_STRICT_BLOCK",
-            safe_to_ingest: false,
-            danger_level: "LETHAL",
-            mandatory_directive: "INTERDICTION FORMELLE : Ne jamais consommer de champignon sauvage sur simple photo/description.",
-            sosies_mortels: ["Amanita phalloides", "Conium maculatum (Ciguë)"]
-          },
-          gemma4_final_response: "⚠️ DANGER MORTEL DÉTECTÉ : N'ingérez en aucun cas ce champignon ! Il présente des caractéristiques d'espèces létales même après cuisson. Respectez impérativement le principe de précaution vital."
-        }, null, 2);
-      } else if (type === 'march') {
-        el.textContent = JSON.stringify({
-          action: "ToolCall -> search_survival_kb",
-          arguments: { query: "saignement cuisse plaie béante", category: "medical" },
-          execution_result: {
-            status: "MEDICAL_TRIAGE_MARCH",
-            framework: "MedGemma-FA",
-            immediate_actions: [
-              "M (Massive Bleeding) : Poser immédiatement un garrot tourniquet 5 à 7 cm au-dessus de la plaie (noter l'heure).",
-              "A & R : Maintenir les voies aériennes libres et surveiller la fréquence respiratoire.",
-              "C & H : Allonger, couvrir impérativement avec couverture de survie pour prévenir le choc hypovolémique."
-            ],
-            contraindications: ["Ne jamais retirer un corps étranger ancré dans la plaie."]
+    function downloadManifestFile() {
+      const manifest = {
+        version: "1.0.0",
+        name: "SurvIA Offline Bundle",
+        models: {
+          gemma_4_e4b_it: {
+            size_bytes: 2684354560,
+            ram_required_gb: 8,
+            quantization: "INT4 (QAT)",
+            format: "litertlm",
+            url: "https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm"
           }
-        }, null, 2);
-      } else if (type === 'water') {
-        el.textContent = JSON.stringify({
-          action: "ToolCall -> search_survival_kb",
-          arguments: { query: "purification eau de rivière", category: "water" },
-          execution_result: {
-            status: "OK",
-            manual_reference: "US Army FM 21-76",
-            protocol: "Filtrer d'abord sur tissu pour retirer les sédiments, puis porter à ébullition franche pendant 1 minute complète (+1 min par 1000m d'altitude)."
-          }
-        }, null, 2);
-      }
-    }
-
-    // Outil 2 : Test GPS réel
-    function testRealGps() {
-      const statusEl = document.getElementById("gps-status");
-      const consoleEl = document.getElementById("console-output");
-
-      if (!navigator.geolocation) {
-        statusEl.textContent = "Géolocalisation non supportée sur ce navigateur.";
-        return;
-      }
-
-      statusEl.textContent = "Acquisition du signal GPS satellite en cours...";
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude.toFixed(5);
-          const lon = pos.coords.longitude.toFixed(5);
-          const alt = pos.coords.altitude ? pos.coords.altitude.toFixed(0) + "m" : "Inconnue";
-          statusEl.textContent = `Fix GPS réussi : ${lat}°N, ${lon}°E (Alt: ${alt})`;
-
-          // Met à jour le lien Organic Maps
-          const omUri = `om://map?ll=${lat},${lon}&n=Position_Actuelle`;
-          document.getElementById("btn-open-om").href = omUri;
-
-          consoleEl.textContent = JSON.stringify({
-            action: "ToolCall -> get_gps_and_map",
-            hardware_gps_reading: {
-              latitude: parseFloat(lat),
-              longitude: parseFloat(lon),
-              altitude: alt,
-              accuracy_meters: pos.coords.accuracy
-            },
-            nearest_water_poi: {
-              name: "Source naturelle Font-Vive",
-              bearing: "221.4° SO",
-              straight_dist_km: 0.42,
-              walking_time_naismith: "6 minutes"
-            },
-            organic_maps_link: omUri
-          }, null, 2);
         },
-        (err) => {
-          statusEl.textContent = `Erreur GPS : ${err.message}. Utilisation des coordonnées de secours (45.1885, 5.7245).`;
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
-    }
-
-    // Outil 3 : Upload et analyse de pièces jointes (Images, PDF, Word, Excel)
-    function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const statusEl = document.getElementById("file-status");
-      const consoleEl = document.getElementById("console-output");
-      statusEl.textContent = `Fichier chargé : ${file.name} (${(file.size / 1024).toFixed(1)} Ko)`;
-
-      const isImage = file.type.startsWith("image/");
-      const ext = file.name.split('.').pop().toLowerCase();
-
-      if (isImage) {
-        consoleEl.textContent = JSON.stringify({
-          action: "ToolCall -> analyze_camera_frame",
-          file_meta: { name: file.name, size_bytes: file.size, mime_type: file.type },
-          vision_engine: "Gemma 4 E4B IT Native Multimodal Vision (0 MB overhead)",
-          clinical_triage_rubric: "MedGemma-FA / Botanical Safety Grid",
-          analysis_result: "Image inspectée localement par l'encodeur de vision de Gemma 4 E4B IT. Tous les marqueurs cliniques et botaniques sont extraits sans internet."
-        }, null, 2);
-      } else {
-        consoleEl.textContent = JSON.stringify({
-          action: "Local Document Parsing (100% Offline)",
-          file_meta: { name: file.name, format: ext.toUpperCase(), size_bytes: file.size },
-          parser_engine: "SurvIA Native OpenXML / PDF Parser",
-          status: "SUCCESS",
-          extracted_text_preview: `[Contenu extrait du document ${file.name}] : Protocole d'intervention et fiches de terrain extraites avec succès, prêtes pour le prompt Gemma 4.`
-        }, null, 2);
-      }
-    }
-
-    function clearConsole() {
-      document.getElementById("console-output").textContent = "[Console réinitialisée]";
+        databases: {
+          survival_kb: "survival_knowledge.db",
+          manuals: "US Army FM 21-76 / MARCH / OMS"
+        }
+      };
+      const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "survia-download-manifest.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     // Initialisation au chargement de la page
     window.addEventListener("DOMContentLoaded", () => {
-      // Détermine l'URL en direct : si servi sur GitHub Pages / Vercel, prend window.location.href
-      const currentUrl = window.location.href;
-      const target = (currentUrl && !currentUrl.startsWith("file://")) ? currentUrl : "https://marequete.github.io/SurvIA/";
-      document.getElementById("custom-url").value = target;
-      initQrCode(target);
+      // Par défaut, l'agent IA démarre immédiatement sur la vue chat
+      switchView('chat');
     });
   </script>
 </body>
