@@ -29,7 +29,6 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.litert.lm.runtime)
             implementation(libs.play.services.location)
         }
         iosMain.dependencies {}
