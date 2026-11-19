@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node -e \"const fs=require('fs'); fs.mkdirSync('dist', {recursive: true}); fs.copyFileSync('public/index.html', 'dist/index.html'); console.log('[Build] Copied public/index.html to dist/index.html');\""
+    "build": "node -e \"const fs=require('fs'); ['dist','public','landing-page'].forEach(d => fs.mkdirSync(d, {recursive:true})); ['dist/index.html','public/index.html'].forEach(f => fs.copyFileSync('index.html', f)); console.log('[Build] Successfully synchronized index.html across all outputs');\""
   }
 }
