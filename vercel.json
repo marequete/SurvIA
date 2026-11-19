@@ -2,7 +2,20 @@
   "buildCommand": null,
   "outputDirectory": "public",
   "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/downloads/(.*)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Content-Disposition", "value": "attachment" }
+      ]
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/downloads/(.*)",
+      "destination": "/downloads/$1"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
