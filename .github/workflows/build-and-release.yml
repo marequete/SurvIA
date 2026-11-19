@@ -1,11 +1,12 @@
-name: Build and Release SurvIA (100% Gratuit)
+name: Build and Release SurvIA Native APK
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
-
 
 jobs:
   build-android:
@@ -20,25 +21,36 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: ${{ runner.os }}-gradle-
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Build Android APK
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Generate Gradle Wrapper and Build APK
         run: |
           cd survia-app
-          chmod +x gradlew || true
-          ./gradlew assembleRelease || echo "Build Android prêt"
+          gradle wrapper --gradle-version 8.11.1
+          ./gradlew :androidApp:assembleDebug --stacktrace
 
-      - name: Upload APK to GitHub Release
+      - name: Rename APK for Distribution
+        run: |
+          mkdir -p release-output
+          cp survia-app/androidApp/build/outputs/apk/debug/*.apk release-output/SurvIA.apk
+          cp survia-app/assets/download-manifest.json release-output/download-manifest.json
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurvIA-Android-APK
+          path: release-output/SurvIA.apk
+
+      - name: Publish to GitHub Releases (Tags)
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            survia-app/androidApp/build/outputs/apk/release/*.apk
-            survia-app/assets/download-manifest.json
+            release-output/SurvIA.apk
+            release-output/download-manifest.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
