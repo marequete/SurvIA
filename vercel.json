@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "name": "survia",
+  "cleanUrls": true,
+  "outputDirectory": "landing-page",
+  "builds": [
+    {
+      "src": "landing-page/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/landing-page/$1"
+    }
+  ]
+}
