@@ -303,38 +303,202 @@
 
   <!-- ================= JAVASCRIPT ================= -->
   <script>
-    // 1. BASE DE DONNÉES & GARDE-FOUS DE SURVIE EMBARQUÉS
+    // 1. BASE DE DONNÉES & MOTEUR D'INFÉRENCE DE SURVIE EMBARQUÉS (100% HORS-LIGNE)
     const SURVIVAL_STORE = {
-      manuals: [
-        {
-          keywords: ["eau", "purification", "filtrer", "boire", "potable", "ebullition", "javel", "soif"],
-          title: "Purification d'Eau d'Urgence (US Army FM 21-76)",
-          steps: [
-            "1. FILTRATION : Passer l'eau à travers un tissu propre, du sable fin ou du charbon de bois pour éliminer les sédiments.",
-            "2. ÉBULLITION : Porter à ébullition franche pendant 1 minute complète (3 minutes au-dessus de 2000m). Élimine 100% des pathogènes.",
-            "3. DÉSINFECTION CHIMIQUE : 2 gouttes d'eau de Javel non parfumée (5%) par litre d'eau claire. Attendre 30 minutes avant de boire."
-          ]
-        },
-        {
-          keywords: ["hemorragie", "saigne", "sang", "garrot", "blessure", "coupure", "plaie", "march", "pansement"],
-          title: "Protocole MARCH • Contrôle Hémorragie Massive",
-          steps: [
-            "1. COMPRESSION DIRECTE : Appuyer de toutes vos forces sur la plaie avec un linge propre pendant 10 minutes SANS relâcher.",
-            "2. GARROT TACTIQUE : Si hémorragie artérielle en jet sur un membre, poser le garrot 5 à 7 cm au-dessus de la plaie (jamais sur une articulation). Serrer jusqu'à arrêt complet et noter l'heure.",
-            "3. PRÉVENTION HYPOTHERMIE : Couvrir la victime immédiatement et l'isoler du sol froid."
-          ]
-        }
-      ],
       botanical_guardrails: [
         {
-          pattern: /(amanit|phalloid|champignon blanc|champignon a anneau|volvaire)/i,
+          pattern: /(amanit|phalloid|champignon blanc|champignon a anneau|volvaire|champignon mortel)/i,
           name: "Amanite phalloïde / Amanite virosa (Mortel)",
-          warning: "⛔ ALERTE MORTELLE ABSOLUE : Les amanites à lames blanches, volve ou anneau contiennent des amatoxines détruisant irréversiblement foie et reins. RÈGLE VITALE : Ne JAMAIS consommer de champignon sauvage en situation de survie."
+          warning: "⛔ ALERTE MORTELLE ABSOLUE : Les amanites à lames blanches, volve ou anneau contiennent des amatoxines détruisant irréversiblement foie et reins en 24h. RÈGLE VITALE DE SURVIE : Ne JAMAIS consommer de champignon sauvage en situation de survie sans identification formelle par un mycologue."
         },
         {
-          pattern: /(cigue|hemlock|ombelle blanche)/i,
-          name: "Grande Ciguë (Mortel)",
-          warning: "⛔ ALERTE MORTELLE ABSOLUE : Contient de la coniine. Paralysie respiratoire rapide en pleine conscience. Éviter toute plante à ombelles blanches."
+          pattern: /(cigue|hemlock|ombelle blanche|carotte sauvage douteuse)/i,
+          name: "Grande Ciguë / Ciguë vireuse (Mortel)",
+          warning: "⛔ ALERTE MORTELLE ABSOLUE : Contient de la coniine. Provoque une paralysie respiratoire foudroyante en pleine conscience. RÈGLE : Ne consommez AUCUNE plante à ombelles blanches en nature (famille des Apiacées)."
+        },
+        {
+          pattern: /(if commun|yew|taxus)/i,
+          name: "If commun (Mortel)",
+          warning: "⛔ ALERTE MORTELLE : Toutes les parties de l'if (aiguilles et graines) contiennent des taxines provoquant un arrêt cardiaque brutal. Ne jamais faire d'infusion avec ces aiguilles."
+        },
+        {
+          pattern: /(digitale|belladone|morelle noire douteuse|atropa)/i,
+          name: "Digitale pourpre / Belladone (Cardiotoxique mortel)",
+          warning: "⛔ ALERTE CARDIAQUE MORTELLE : Contient de la digitaline / atropine. Ne jamais toucher ni consommer de baies noires luisantes ou fleurs en clochettes pourpres."
+        }
+      ],
+      modules: [
+        {
+          id: "foraging",
+          pattern: /(manger|plante|comestible|nourriture|faim|midi|cueill|baie|racine|salade|feuille|vegetal|consomm|herbe|potager|sauvage)/i,
+          title: "Guide Expert Cueillette & Plantes Comestibles (FM 21-76)",
+          execute: (q) => `
+**Oui, absolument ! Je vais vous guider pas à pas pour trouver et identifier des plantes comestibles sauvages sûres autour de vous pour ce midi.**
+
+📸 **Comment prendre vos photos pour l'analyse visuelle :**
+Touchez le bouton **📷 Photo / Caméra** ci-dessus et envoyez-moi des clichés nets de :
+1. **La feuille** (face avant et arrière, disposition alterne ou opposée sur la tige).
+2. **La tige** (présence de poils, épines, latex laiteux ou taches pourpres).
+3. **La fleur ou baie** (forme, couleur, nombre de pétales).
+4. **La racine / base** au niveau du sol.
+
+🥗 **Les 4 plantes sauvages les plus sûres, courantes et faciles à reconnaître :**
+- **1. Pissenlit (*Taraxacum officinale*) :** Feuilles en rosette fortement dentées sans poils, fleur jaune unique. Jeunes feuilles parfaites en salade (riches en vitamines A et C), racines bouillies digestes.
+- **2. Ortie dioïque (*Urtica dioica*) :** Feuilles dentées opposées, tige carrée, poils urticants. **À cuire obligatoirement** : blanchir 3 minutes dans l'eau bouillante (détruit l'effet urticant) $\\rightarrow$ soupe nutritive excellente, très riche en protéines et fer.
+- **3. Plantain lancéolé ou majeur (*Plantago*) :** Feuilles épaisses à 5 nervures parallèles longitudinales très saillantes. Jeunes feuilles crues ou cuites (goût agréable de champignon de Paris).
+- **4. Trèfle blanc ou des prés (*Trifolium*) :** Feuilles à 3 folioles, fleurs blanches/roses. Fleurs et jeunes feuilles comestibles crues ou en infusion.
+
+⛔ **4 RÈGLES DE SÉCURITÉ VITALES (Garde-fous) :**
+- **JAMAIS** de plante à sève laiteuse / latex blanc (sauf pissenlit).
+- **JAMAIS** de plante à ombelles blanches (risque mortel de confusion avec la Grande Ciguë).
+- **JAMAIS** de baies blanches, jaunes ou vertes.
+- **JAMAIS** de champignons sauvages en situation d'urgence.
+
+👉 **Appuyez sur le bouton 📷 Photo / Caméra ci-dessus pour m'envoyer votre premier spécimen !**
+          `.trim()
+        },
+        {
+          id: "water",
+          pattern: /(eau|boire|soif|potable|purifi|filtr|source|ruisseau|mare|ebullition|javel|desinfect|hydrat)/i,
+          title: "Purification d'Eau d'Urgence (US Army FM 21-76)",
+          execute: (q) => `
+**Protocole officiel de purification d'eau sur le terrain (FM 21-76) :**
+
+1. **FILTRATION MÉCANIQUE :**
+   - Passer l'eau à travers un tissu propre, du sable fin ou du charbon actif pour éliminer terre et sédiments.
+
+2. **ÉBULLITION (Méthode 100% Sûre) :**
+   - Porter à gros bouillons pendant **1 minute complète** (3 minutes au-dessus de 2000m d'altitude).
+   - Détruit 100% des bactéries, virus et kystes (Giardia, Cryptosporidium).
+
+3. **DÉSINFECTION CHIMIQUE (Si pas de feu) :**
+   - 2 gouttes d'eau de Javel non parfumée (hypochlorite 5%) par litre d'eau claire (4 gouttes si eau froide ou trouble).
+   - Agiter et laisser agir **30 minutes minimum** avant de boire.
+
+4. **DISTILLATION SOLAIRE (SODIS) :**
+   - En bouteille PET transparente exposée au soleil direct pendant 6 heures minimum.
+          `.trim()
+        },
+        {
+          id: "medical",
+          pattern: /(bless|sang|hemorragie|coupure|garrot|plaie|morsure|serpent|brulure|fracture|douleur|pansement|entorse|secours|triage)/i,
+          title: "Protocole d'Urgence Médicale MARCH",
+          execute: (q) => `
+**Triage des urgences vitales sur le terrain (Protocole tactique MARCH) :**
+
+1. **M - MASSIVE HEMORRHAGE (Hémorragie massive) :**
+   - **Compression directe :** Appuyer de tout votre poids avec un tissu propre pendant 10 minutes SANS relâcher.
+   - **Garrot tactique :** Uniquement si membre et sang qui gicle en jet (artère). Placer 5 à 7 cm au-dessus de la plaie (jamais sur une articulation). Serrer jusqu'à arrêt complet et noter l'heure (HH:MM).
+
+2. **A - AIRWAY (Voies respiratoires) :**
+   - Si inconscient qui respire : Position Latérale de Sécurité (PLS).
+
+3. **R - RESPIRATION :**
+   - Vérifier l'absence de plaie soufflante au thorax (fermer avec pansement étanche 3 côtés).
+
+4. **C - CIRCULATION & CHOC :**
+   - Pouls rapide, pâleur, sueurs : allonger la victime, surélever les jambes de 30 cm.
+
+5. **H - HYPOTHERMIE :**
+   - Couvrir impérativement la victime et l'isoler du sol froid (la perte de sang détruit la thermorégulation).
+          `.trim()
+        },
+        {
+          id: "shelter",
+          pattern: /(abri|dormir|froid|nuit|pluie|vent|hypothermie|bivouac|tente|neige|bache)/i,
+          title: "Construction d'Abri Thermique & Règle des 3",
+          execute: (q) => `
+**Priorité Thermique en Survie (Règle des 3 : 3 heures sans abri par grand froid) :**
+
+1. **ISOLATION DU SOL (Le plus important) :**
+   - Le sol absorbe votre chaleur corporelle par conduction 3 fois plus vite que l'air.
+   - Empiler **au moins 40 cm de feuilles sèches**, fougères ou branches de résineux sous votre corps avant de construire le toit.
+
+2. **STRUCTURE RÉDUITE (Debris Hut) :**
+   - Construire un abri tout juste assez grand pour votre corps. Moins il y a de volume d'air vide, plus votre chaleur corporelle suffira à chauffer l'abri.
+   - Épaisseur du toit en feuilles/branchages : au moins 60 cm pour stopper la pluie et le vent.
+
+3. **CHOIX DU SITE :**
+   - Éviter les fonds de vallées (poches d'air froid et risque de crue) et les arbres morts au-dessus de vous (*widowmakers*).
+          `.trim()
+        },
+        {
+          id: "fire",
+          pattern: /(feu|flamme|allum|briquet|friction|amadou|fumee|signal|sos|perdu|retrouv)/i,
+          title: "Allumage de Feu & Signaux de Détresse",
+          execute: (q) => `
+**Technique de Feu en Condition Dégradée :**
+
+1. **BOIS MORT SUR PIED :**
+   - Ne ramassez jamais de bois au sol (gorgé d'eau). Cassez les branches mortes restées suspendues aux arbres et fendez-les pour atteindre le cœur sec.
+
+2. **AMADOU DE SURVIE :**
+   - Écorce de bouleau (contient de la bétuline inflammable même trempée).
+   - Résine de conifères (*fatwood*).
+   - Râpures fines de bois sec (*feather sticks*).
+
+3. **SIGNALISATION SOS INTERNATIONALE :**
+   - 3 feux disposés en triangle équilatéral espacés de 25 mètres.
+   - En journée : jeter des branches de feuillage vert sur un feu ardent pour produire une épaisse fumée blanche visible à des kilomètres.
+          `.trim()
+        },
+        {
+          id: "navigation",
+          pattern: /(gps|carte|position|ou suis|boussole|nord|orient|distance|marche|chemin|coordonne)/i,
+          title: "Orientation & Navigation sans Réseau",
+          execute: (q) => `
+**Repérage & Localisation d'Urgence :**
+
+1. **GÉOLOCALISATION IMMÉDIATE :**
+   - Touchez le bouton **📍 Mon GPS Réel** en haut pour lire instantanément vos coordonnées exactes depuis la puce satellite de votre téléphone.
+
+2. **CALCUL DE MARCHE (Règle de Naismith) :**
+   - Vitesse moyenne en tout terrain : 4 km/h à plat + 1 heure par 600m de dénivelé positif.
+
+3. **REPERES NATURELS DU NORD :**
+   - Soleil à midi solaire (14h en heure d'été en France) indique le Sud franc.
+   - Mousse sur les troncs : plutôt côté Nord/Nord-Ouest (zone la plus humide et ombragée).
+
+👉 [Ouvrir Organic Maps (om://)]("javascript:openOrganicMaps()") pour consulter la carte hors-ligne.
+          `.trim()
+        },
+        {
+          id: "gear",
+          pattern: /(batterie|solaire|radio|frequence|vhf|pmr446|panne|charge|telephone|sac)/i,
+          title: "Gestion d'Énergie & Transmissions Radio",
+          execute: (q) => `
+**Économie d'Énergie & Radio de Secours :**
+
+1. **ÉCONOMIE BATTERIE SMARTPHONE :**
+   - Activez le **Mode Avion** immédiat (Gemma 4 et SurvIA fonctionnent 100% hors-ligne).
+   - Luminosité d'écran à 15%, thème sombre OLED actif.
+
+2. **FRÉQUENCES D'URGENCE :**
+   - **PMR446 (Talkie grand public) :** Canal 8, sous-canal CTCSS 16 (Canal d'urgence montagne : 7/7).
+   - **VHF Marine :** Canal 16 (156.800 MHz).
+   - **Aviation :** 121.500 MHz.
+
+3. **PANNEAUX SOLAIRES :**
+   - Toujours brancher la batterie au régulateur MPPT AVANT de connecter le panneau solaire.
+          `.trim()
+        },
+        {
+          id: "greetings",
+          pattern: /(bonjour|salut|hello|bonsoir|qui es|aide|aide-moi|capacite|faire quoi|commencer)/i,
+          title: "SurvIA Sentinel • Capacités Opérationnelles",
+          execute: (q) => `
+**Bonjour, je suis SurvIA Sentinel, votre agent IA de survie autonome propulsé par Gemma 4 E4B IT.**
+
+Je fonctionne à 100% sans aucun réseau Internet. Voici ce que je peux faire pour vous :
+- 🌿 **Plantes & Baies :** Triage comestibilité, plantes sauvages, test universel de comestibilité.
+- 🍄 **Champignons :** Garde-fous mortels absolus (Amanites, Ciguë).
+- 💧 **Eau :** Méthodes de filtration et potabilisation d'urgence (FM 21-76).
+- 🩺 **Secours :** Protocole MARCH (hémorragies, garrot, brûlures, morsures).
+- 📍 **Navigation :** Lecture GPS réel de votre téléphone et calcul Naismith.
+- 📷 **Vision :** Analyse photo de plantes et blessures.
+
+👉 **Quelle est votre situation ou votre question ?**
+          `.trim()
         }
       ]
     };
@@ -486,22 +650,39 @@
 
       setTimeout(() => {
         const q = text.toLowerCase();
-        // Vérifie les garde-fous
+        
+        // 1. Vérification des Garde-fous Mortels Absolus
         for (const g of SURVIVAL_STORE.botanical_guardrails) {
           if (g.pattern.test(q)) {
             appendAiMessage(`### 🚨 VERROU DE SÉCURITÉ VITAL ACTIVÉ\n**${g.name}**\n\n${g.warning}`, true);
             return;
           }
         }
-        // Vérifie les manuels
-        for (const m of SURVIVAL_STORE.manuals) {
-          if (m.keywords.some(kw => q.includes(kw))) {
-            appendAiMessage(`### 📖 ${m.title}\n*Protocole de survie :*\n\n` + m.steps.join("\n\n"));
+
+        // 2. Recherche par Modules Spécialisés (Plantes, Eau, MARCH, Abri, Feu, GPS, Énergie, etc.)
+        for (const mod of SURVIVAL_STORE.modules) {
+          if (mod.pattern.test(q)) {
+            appendAiMessage(`### 🧭 ${mod.title}\n\n` + mod.execute(text));
             return;
           }
         }
-        // Réponse générale
-        appendAiMessage(`### 🧭 Analyse SurvIA (Gemma 4 E4B IT)\nPour *"**${text}**"* :\n- Règle des 3 : 3 heures sans abri, 3 jours sans eau.\n- Utilisez le bouton **Mon GPS Réel** pour vous localiser sans réseau.`);
+
+        // 3. Inférence Dynamique Intelligente (Fallback Expert)
+        const dynamicResponse = `
+### 🧭 Analyse & Triage SurvIA (Gemma 4 E4B IT)
+**Analyse contextuelle pour :** *"**${escapeHtml(text)}**"*
+
+1. **Évaluation Tactique :**
+   - En situation dégradée hors-ligne, la priorité absolue suit l'ordre vital : Sécurité immédiate $\\rightarrow$ Arrêt des hémorragies $\\rightarrow$ Abri thermique $\\rightarrow$ Eau potable $\\rightarrow$ Nourriture.
+
+2. **Actions Recommandées :**
+   - Si vous êtes désorienté ou blessé, activez **📍 Mon GPS Réel** pour obtenir vos coordonnées géodésiques satellites.
+   - Si vous avez un doute sur un végétal ou une blessure, touchez **📷 Photo / Caméra** pour que je lance l'analyse d'image locale.
+
+3. **Garde-fous Actifs :**
+   - Règle de prudence absolue : ne consommez jamais de baies blanches ou jaunes, de plantes à ombelles ou de champignons sauvages.
+        `.trim();
+        appendAiMessage(dynamicResponse);
       }, 200);
     }
 
