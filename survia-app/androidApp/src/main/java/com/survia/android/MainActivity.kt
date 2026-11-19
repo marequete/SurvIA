@@ -28,7 +28,12 @@ import com.survia.tools.SurvivalToolRouter
 import com.survia.tools.GeoCoords
 import kotlinx.coroutines.launch
 
-data class ChatMessage(val isUser: Boolean, val text: String, val isWarning: Boolean = false)
+data class ChatMessage(
+    val isUser: Boolean,
+    val text: String,
+    val isWarning: Boolean = false,
+    val isThinking: Boolean = false
+)
 
 class MainActivity : ComponentActivity() {
 
@@ -144,9 +149,22 @@ fun SurvIAMainScreen(
                                 messages.add(ChatMessage(true, userQ))
                                 inputText = ""
                                 coroutineScope.launch {
-                                    val isEdibility = userQ.contains("champignon", true) || userQ.contains("plante", true)
-                                    val toolToCall = if (isEdibility) "search_survival_kb" else if (userQ.contains("gps", true) || userQ.contains("eau", true)) "get_gps_and_map" else "search_survival_kb"
+                                    // Affiche l'indicateur "en cours"
+                                    val thinkingIdx = messages.size
+                                    messages.add(ChatMessage(false, "⏳ Analyse en cours...", isThinking = true))
+
+                                    // Routage intelligent selon mots-clés
+                                    val qLow = userQ.lowercase()
+                                    val toolToCall = when {
+                                        qLow.contains("gps") || qLow.contains("coordonnées") ||
+                                        qLow.contains("où") || qLow.contains("carte") ||
+                                        qLow.contains("position") -> "get_gps_and_map"
+                                        else -> "search_survival_kb"
+                                    }
                                     val res = onExecuteTool(toolToCall, """{"query":"$userQ"}""")
+
+                                    // Remplace l'indicateur par la réponse réelle
+                                    messages.removeAt(thinkingIdx)
                                     messages.add(ChatMessage(false, res.outputJson, isWarning = res.isFatalGuardrailTriggered))
                                 }
                             }
@@ -168,26 +186,48 @@ fun SurvIAMainScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(messages) { msg ->
+                val isThinking = msg.isThinking
                 val bg = when {
+                    isThinking    -> Color(0xFF1A2A1A)
                     msg.isWarning -> Color(0xFF7F1D1D)
-                    msg.isUser -> Color(0xFF1F2D3D)
-                    else -> Color(0xFF111820)
+                    msg.isUser    -> Color(0xFF1A2D45)
+                    else          -> Color(0xFF111820)
                 }
-                val border = if (msg.isWarning) Color(0xFFEF4444) else Color(0xFF334155)
+                val border = when {
+                    isThinking    -> Color(0xFF10B981)
+                    msg.isWarning -> Color(0xFFEF4444)
+                    msg.isUser    -> Color(0xFF38BDF8)
+                    else          -> Color(0xFF334155)
+                }
 
-                Card(
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = bg),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, border),
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = if (msg.isUser) Arrangement.End else Arrangement.Start
                 ) {
-                    Text(
-                        text = msg.text,
-                        color = if (msg.isWarning) Color(0xFFFECACA) else Color.White,
-                        fontSize = 13.sp,
-                        fontFamily = if (!msg.isUser) FontFamily.Monospace else FontFamily.Default,
-                        modifier = Modifier.padding(12.dp)
-                    )
+                    Card(
+                        shape = RoundedCornerShape(
+                            topStart = if (msg.isUser) 12.dp else 2.dp,
+                            topEnd = if (msg.isUser) 2.dp else 12.dp,
+                            bottomStart = 12.dp,
+                            bottomEnd = 12.dp
+                        ),
+                        colors = CardDefaults.cardColors(containerColor = bg),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, border),
+                        modifier = Modifier.fillMaxWidth(if (msg.isUser) 0.85f else 1f)
+                    ) {
+                        Text(
+                            text = msg.text,
+                            color = when {
+                                isThinking    -> Color(0xFF10B981)
+                                msg.isWarning -> Color(0xFFFECACA)
+                                else          -> Color.White
+                            },
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp,
+                            fontFamily = FontFamily.Default,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
                 }
             }
         }
