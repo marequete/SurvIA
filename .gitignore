@@ -1,0 +1,31 @@
+# Build & IDE
+.gradle/
+build/
+**/build/
+*.class
+*.log
+
+# Android
+.idea/
+*.iml
+local.properties
+.cxx/
+captures/
+*.apk
+*.aab
+
+# Node & Web
+node_modules/
+.vercel/
+.npm/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/

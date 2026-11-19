@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "name": "SurvIA Offline Knowledge and Model Bundle",
+  "storage_required_bytes": 3758096384,
+  "models": {
+    "recommended_high_ram": {
+      "model_id": "gemma-4-E4B-it-int4",
+      "size_bytes": 2684354560,
+      "min_ram_gb": 8,
+      "format": "litertlm",
+      "sha256": "3a88c21349f50e8ad68971f496152119028a6fcf14a1a364be10e15264b3879a",
+      "url": "https://github.com/Soonz-38/kit-survie/releases/download/v1.0.0-assets/gemma-4-E4B-it-int4.litertlm",
+      "fallback_url": "https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm/resolve/main/gemma-4-E4B-it.litertlm",
+      "description": "Gemma 4 E4B IT quantifié INT4 (QAT) : Vision multimodale + Réflexion + 3 Skills intégrés."
+    },
+    "fallback_low_ram": {
+      "model_id": "gemma-4-E2B-it-int4",
+      "size_bytes": 1395864371,
+      "min_ram_gb": 6,
+      "format": "litertlm",
+      "sha256": "4b99d32450e61f9be79082f507263220139b7fdf25b2b475ce21f26375c4980b",
+      "url": "https://github.com/Soonz-38/kit-survie/releases/download/v1.0.0-assets/gemma-4-E2B-it-int4.litertlm",
+      "fallback_url": "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm",
+      "description": "Gemma 4 E2B IT pour smartphones avec 6 Go de RAM."
+    }
+  },
+  "databases": [
+    {
+      "id": "survival_kb",
+      "filename": "survival_knowledge.db",
+      "size_bytes": 58982400,
+      "url": "https://github.com/Soonz-38/kit-survie/releases/download/v1.0.0-assets/survival_knowledge.db",
+      "description": "Base SQLite FTS5 (BM25) manuels US Army FM 21-76, fiches Where There Is No Doctor et POI vitaux."
+    },
+    {
+      "id": "wikimed_fr_mini",
+      "filename": "wikimed_fr_mini_survival.zim",
+      "size_bytes": 838860800,
+      "optional": true,
+      "url": "https://github.com/Soonz-38/kit-survie/releases/download/v1.0.0-assets/wikimed_fr_mini_survival.zim",
+      "description": "Archive médicale Kiwix ZIM complète hors-ligne."
+    }
+  ]
+}

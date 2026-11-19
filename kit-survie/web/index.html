@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poste Tactique MCP Survie Hors-Ligne • Android Gemma 4 E4B IT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    /* Tailwind Patterns (@theme Design Tokens) + Emil Kowalski Motion Rules (<250ms, cubic-bezier(0.16, 1, 0.3, 1)) */
+    :root {
+      --color-bg-base: #090d11;
+      --color-surface: #111820;
+      --color-border: #1f2d3d;
+      --color-primary: #10b981;
+      --color-warning: #f59e0b;
+      --color-danger: #ef4444;
+      --color-text: #f1f5f9;
+      --color-muted: #94a3b8;
+      --animate-duration: 220ms;
+    }
+    body {
+      background-color: var(--color-bg-base);
+      color: var(--color-text);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .ek-interactive {
+      transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1),
+                  background-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ek-interactive:active {
+      transform: scale(0.97);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 md:p-6">
+  <!-- Header Mobile-First (UI/UX Pro Max: 44x44px touch targets, semantic landmarks) -->
+  <header class="max-w-6xl w-full mx-auto flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800 animate__animated animate__fadeInDown">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+      <div>
+        <h1 class="text-lg md:text-xl font-bold tracking-tight">
+          OFFLINE SURVIVAL MCP • ANDROID GEMMA 4 E4B IT
+        </h1>
+        <p class="text-xs text-slate-400">
+          Kiwix ZIM (:8081) • MedGemma-FA Vision • Survival-Station FTS5 • Organic Maps (:8082 / om://)
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="btn-health" onclick="probeHealth()" aria-label="Vérifier l'état du serveur MCP"
+        class="ek-interactive min-h-[44px] px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-semibold text-sm">
+        Sonde MCP (:8000)
+      </button>
+      <a href="om://map?ll=45.1885,5.7245&n=Source_Font_Vive"
+        class="ek-interactive min-h-[44px] inline-flex items-center px-4 py-2 rounded-lg border border-slate-700 bg-slate-900 hover:border-emerald-500 text-sm font-medium">
+        Ouvrir Organic Maps (Intent)
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content Grid -->
+  <main class="max-w-6xl w-full mx-auto my-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+    <!-- Left Column: 3D Topographic & Compass Experience (3d-web-experience skill) -->
+    <section aria-labelledby="heading-3d" class="lg:col-span-7 rounded-xl bg-slate-900/90 border border-slate-800 p-4 flex flex-col justify-between animate__animated animate__fadeInUp">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <div>
+          <h2 id="heading-3d" class="text-sm font-semibold uppercase tracking-wider text-emerald-400">
+            Boussole & Relief Topographique 3D (WebGL Hors-Ligne)
+          </h2>
+          <p class="text-xs text-slate-400">
+            Visualisation 3D du relief local, cap boussole vers les sources d'eau potable et refuges OSM
+          </p>
+        </div>
+        <span id="compass-readout" class="font-mono text-xs px-2.5 py-1 rounded bg-slate-950 border border-slate-800 text-emerald-400">
+          CAP 221.4° SO • 1410m
+        </span>
+      </div>
+
+      <div id="webgl-container" class="relative w-full h-72 md:h-80 rounded-lg overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center" style="touch-action: pan-y;">
+        <div id="webgl-loader" class="text-xs font-mono text-slate-400">
+          Initialisation du relief 3D...
+        </div>
+        <div id="webgl-fallback" class="hidden text-center p-4 text-xs text-amber-400">
+          Mode économie d'énergie / WebGL désactivé — Utilisation de la boussole textuelle : Azimut 221.4° SO (Refuge du Col de l'Arc à 3.6 km).
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 mt-3 text-xs">
+        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+          <div class="text-slate-400">Eau Potable la + proche</div>
+          <div class="font-semibold text-emerald-400 mt-0.5">Source Font-Vive (0.4 km NE)</div>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+          <div class="text-slate-400">Abri Hors-Sac</div>
+          <div class="font-semibold text-sky-400 mt-0.5">Col de l'Arc (3.6 km SO)</div>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+          <div class="text-slate-400">Mode Médical RAM</div>
+          <div class="font-semibold text-amber-400 mt-0.5">Gemma 4 E4B Shared Vision</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Interactive MCP Tool Console -->
+    <section aria-labelledby="heading-tools" class="lg:col-span-5 rounded-xl bg-slate-900/90 border border-slate-800 p-4 flex flex-col justify-between space-y-4 animate__animated animate__fadeInUp">
+      <div>
+        <h2 id="heading-tools" class="text-sm font-semibold uppercase tracking-wider text-emerald-400">
+          Testeur Direct des 4 Domaines MCP
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">
+          Simule ou interroge `http://127.0.0.1:8000/mcp` en local
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="testDomain('kiwix')" class="ek-interactive min-h-[44px] p-2.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-emerald-500 text-left text-xs">
+          <div class="font-semibold text-white">1. Kiwix ZIM</div>
+          <div class="text-slate-400">kiwix_search("eau")</div>
+        </button>
+        <button onclick="testDomain('survival')" class="ek-interactive min-h-[44px] p-2.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-amber-500 text-left text-xs">
+          <div class="font-semibold text-white">2. Garde-Fou Plantes</div>
+          <div class="text-slate-400">survival_verify_edibility</div>
+        </button>
+        <button onclick="testDomain('medgemma')" class="ek-interactive min-h-[44px] p-2.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-rose-500 text-left text-xs">
+          <div class="font-semibold text-white">3. MedGemma Triage</div>
+          <div class="text-slate-400">medical_triage_assessment</div>
+        </button>
+        <button onclick="testDomain('organicmaps')" class="ek-interactive min-h-[44px] p-2.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-sky-500 text-left text-xs">
+          <div class="font-semibold text-white">4. Organic Maps</div>
+          <div class="text-slate-400">geo_compute_offline_route</div>
+        </button>
+      </div>
+
+      <pre id="mcp-console" class="flex-1 p-3 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto max-h-60 leading-relaxed"></pre>
+    </section>
+  </main>
+
+  <footer class="max-w-6xl w-full mx-auto pt-4 border-t border-slate-800 text-xs text-slate-400 flex flex-wrap justify-between gap-2">
+    <span>Unification : kiwix-wiki-mcp-server + MedGemmaImpactChallenge + survival-station + organicmaps</span>
+    <span>100% Hors-Ligne (127.0.0.1) • Optimisé Android Termux & Gemma 4 E4B IT</span>
+  </footer>
+
+  <script>
+    const SAMPLE_OUTPUTS = {
+      kiwix: {
+        tool: "kiwix_search",
+        mode: "circuit_breaker_local_fts (ou kiwix-serve :8081)",
+        results: [
+          {
+            title: "Purification et Filtration d'Eau d'Urgence (US Army FM 21-76)",
+            url: "/local/manual-water-01",
+            snippet: "Ébullition franche pendant 1 minute (3 minutes > 2000m)..."
+          }
+        ]
+      },
+      survival: {
+        tool: "survival_verify_edibility",
+        specimen_queried: "Amanita phalloides",
+        safe_to_ingest: false,
+        guardrail_status: "STRICT_BLOCK_NEVER_CONSUME_UNVERIFIED",
+        mandatory_safety_directive: "INTERDICTION FORMELLE de déclarer un champignon ou plante sauvage comestible sur simple description/photo."
+      },
+      medgemma: {
+        tool: "medical_triage_assessment",
+        triage_level: "RED_IMMEDIATE",
+        execution_mode: "shared_vision_gemma_4_e4b_it",
+        clinical_framework: "Protocole MARCH / ABCDE (MedGemma-FA)"
+      },
+      organicmaps: {
+        tool: "geo_compute_offline_route",
+        straight_distance_km: 3.59,
+        estimated_trail_distance_km: 4.6,
+        elevation_gain_m: 790,
+        compass_bearing_deg: 215.2,
+        compass_cardinal: "SO",
+        estimated_duration_minutes: 148,
+        organic_maps_route_uri: "om://route?sll=45.1885,5.7245&dll=45.162,5.698&type=walk"
+      }
+    };
+
+    function testDomain(key) {
+      const el = document.getElementById("mcp-console");
+      el.textContent = JSON.stringify(SAMPLE_OUTPUTS[key], null, 2);
+    }
+
+    async function probeHealth() {
+      const el = document.getElementById("mcp-console");
+      try {
+        const res = await fetch("http://127.0.0.1:8000/health");
+        const data = await res.json();
+        el.textContent = JSON.stringify(data, null, 2);
+      } catch {
+        el.textContent = JSON.stringify({
+          status: "offline_demo_preview",
+          info: "Lancez `python scripts/start_survival_station.py` pour activer le serveur HTTP local sur 127.0.0.1:8000.",
+          target_model: "gemma-4-e4b-it"
+        }, null, 2);
+      }
+    }
+
+    testDomain("survival");
+
+    // 3D Topographic Terrain & Compass (3d-web-experience best practices: DPR cap, fallback, dispose cleanup)
+    (function init3DTopo() {
+      const container = document.getElementById("webgl-container");
+      const loader = document.getElementById("webgl-loader");
+      const fallback = document.getElementById("webgl-fallback");
+
+      try {
+        const testCanvas = document.createElement("canvas");
+        const gl = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
+        if (!gl || typeof THREE === "undefined") {
+          loader.classList.add("hidden");
+          fallback.classList.remove("hidden");
+          return;
+        }
+      } catch {
+        loader.classList.add("hidden");
+        fallback.classList.remove("hidden");
+        return;
+      }
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(0, 4.2, 6.5);
+      camera.lookAt(0, 0, 0);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+      renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      loader.classList.add("hidden");
+      container.appendChild(renderer.domElement);
+
+      // Wireframe topographic mountain mesh
+      const geo = new THREE.PlaneGeometry(7, 7, 28, 28);
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = Math.sin(x * 0.9) * Math.cos(y * 0.9) * 0.65 + Math.exp(-(x * x + y * y) * 0.18) * 1.1;
+        pos.setZ(i, z);
+      }
+      geo.computeVertexNormals();
+
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0x10b981,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.55
+      });
+      const terrain = new THREE.Mesh(geo, mat);
+      terrain.rotation.x = -Math.PI / 2;
+      scene.add(terrain);
+
+      // POI Beacon (Water Spring / Shelter marker)
+      const beaconGeo = new THREE.OctahedronGeometry(0.22, 0);
+      const beaconMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+      const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+      beacon.position.set(0, 1.45, 0);
+      scene.add(beacon);
+
+      let animId = null;
+      function animate() {
+        animId = requestAnimationFrame(animate);
+        terrain.rotation.z += 0.0025;
+        beacon.rotation.y += 0.02;
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener("beforeunload", () => {
+        if (animId) cancelAnimationFrame(animId);
+        geo.dispose();
+        mat.dispose();
+        beaconGeo.dispose();
+        beaconMat.dispose();
+        renderer.dispose();
+      });
+    })();
+  </script>
+</body>
+</html>
+

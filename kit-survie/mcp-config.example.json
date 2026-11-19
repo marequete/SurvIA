@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "offline-survival": {
+      "command": "node",
+      "args": [
+        "./bin/mcp-server.mjs",
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "TARGET_AGENT_MODEL": "gemma-4-e4b-it",
+        "MEDGEMMA_MODE": "shared_vision",
+        "KIWIX_SERVER_URL": "http://127.0.0.1:8081"
+      }
+    }
+  }
+}
+

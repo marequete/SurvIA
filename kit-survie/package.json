@@ -1,0 +1,21 @@
+{
+  "name": "offline-survival-mcp",
+  "version": "1.0.0",
+  "description": "Unified Offline Survival MCP Server (Kiwix ZIM + MedGemma-FA + Survival-Station + Organic Maps) for Android Gemma 4 E4B IT & PC",
+  "type": "module",
+  "bin": {
+    "offline-survival-mcp": "./bin/mcp-server.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Soonz-38/kit-survie.git"
+  },
+  "scripts": {
+    "start": "node ./bin/mcp-server.mjs",
+    "start:http": "node ./bin/mcp-server.mjs --transport http --port 8000",
+    "db:build": "node ./scripts/build_sqlite_db.mjs",
+    "publish:github": "node ./scripts/publish_to_github.mjs Soonz-38/kit-survie",
+    "test": "node ./bin/mcp-server.mjs --help"
+  },
+  "license": "Apache-2.0"
+}

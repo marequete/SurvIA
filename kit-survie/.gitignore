@@ -1,0 +1,18 @@
+# Python & Node artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+node_modules/
+
+# Heavy offline binary assets (downloaded via setup scripts onto SD card / local disk)
+data/zim/*.zim
+data/maps/*.pmtiles
+data/maps/*.mwm
+data/models/*.gguf
+
+# Keep seeded survival knowledge store & SQLite DB tracked for immediate offline out-of-the-box use
+!data/survival_knowledge_store.json
+!data/survival_knowledge.db
+

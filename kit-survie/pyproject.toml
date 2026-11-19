@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=65.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "offline-survival-mcp"
+version = "1.0.0"
+description = "Serveur MCP unifié 100% hors-ligne (Kiwix ZIM + MedGemma-FA + Survival-Station + Organic Maps) optimisé pour Android (Gemma 4 E4B IT) et PC air-gapped."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "Joris Pisicchio" }
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Soonz-38/kit-survie"
+Repository = "https://github.com/Soonz-38/kit-survie.git"
+
+[project.scripts]
+offline-survival-mcp = "offline_survival_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
