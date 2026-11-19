@@ -72,18 +72,18 @@
         <div class="space-y-3 pt-2">
           <div class="text-xs text-slate-400 font-semibold uppercase">Fichiers d'installation prêts :</div>
           <div class="flex flex-wrap gap-3">
-            <a id="btn-android" href="https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.apk"
-               class="px-4 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs inline-flex items-center gap-2 transition shadow">
+            <button onclick="openDownloadModal('android')" id="btn-android"
+                    class="px-4 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs inline-flex items-center gap-2 transition shadow cursor-pointer">
               <span>🤖 Télécharger SurvIA.apk (Android)</span>
-            </a>
-            <a id="btn-ios" href="https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.ipa"
-               class="px-4 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs inline-flex items-center gap-2 border border-slate-700 transition">
+            </button>
+            <button onclick="openDownloadModal('ios')" id="btn-ios"
+                    class="px-4 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs inline-flex items-center gap-2 border border-slate-700 transition cursor-pointer">
               <span>🍎 Fichier SurvIA.ipa (SideStore gratuit)</span>
-            </a>
-            <a href="https://github.com/marequete/SurvIA/blob/main/survia-app/assets/download-manifest.json" target="_blank"
-               class="px-3 py-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-800">
+            </button>
+            <button onclick="downloadManifestJson()"
+                    class="px-3 py-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-800 cursor-pointer">
               📄 Manifest Modèle JSON
-            </a>
+            </button>
           </div>
         </div>
 
@@ -211,7 +211,122 @@
     <span>Dépôt GitHub : https://github.com/marequete/SurvIA.git</span>
   </footer>
 
+  <!-- Modal d'Installation & Téléchargement Sécurisé -->
+  <div id="download-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass max-w-lg w-full p-6 rounded-2xl shadow-2xl space-y-4 border border-slate-700">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 id="modal-title" class="text-base font-bold text-white flex items-center gap-2">
+          📦 Installation SurvIA
+        </h3>
+        <button onclick="closeDownloadModal()" class="text-slate-400 hover:text-white p-1 text-lg leading-none cursor-pointer">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+        <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300">
+          <strong>Information Dépôt Privé :</strong> Le dépôt GitHub <code>marequete/SurvIA</code> est configuré en mode <strong>Privé</strong>. GitHub bloque donc le téléchargement direct anonyme depuis un smartphone non connecté.
+        </div>
+
+        <div class="space-y-2">
+          <div class="font-semibold text-slate-200">Options immédiates disponibles :</div>
+          
+          <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-2">
+            <div class="text-emerald-400 font-bold flex items-center gap-1.5">
+              <span>📱</span> Option 1 : Tester SurvIA Immédiatement sur ce Mobile
+            </div>
+            <p class="text-slate-400 text-[11px]">
+              Activez le Banc d'Essai complet directement dans votre navigateur : capteur GPS réel, caméra et les 3 compétences sans rien installer.
+            </p>
+            <button onclick="toggleView('simulator'); closeDownloadModal();"
+                    class="w-full py-2 px-3 rounded bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs cursor-pointer">
+              Lancer le Banc d'Essai Mobile
+            </button>
+          </div>
+
+          <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-2">
+            <div class="text-sky-400 font-bold flex items-center gap-1.5">
+              <span>📄</span> Option 2 : Télécharger le Manifeste Modèle Hors-Ligne
+            </div>
+            <p class="text-slate-400 text-[11px]">
+              Télécharge directement le manifeste JSON du modèle Gemma 4 E4B INT4 et les liens vers les bases SQLite de survie.
+            </p>
+            <button onclick="downloadManifestJson(); closeDownloadModal();"
+                    class="w-full py-2 px-3 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs cursor-pointer">
+              Télécharger le Manifeste JSON
+            </button>
+          </div>
+
+          <div class="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1 text-[11px] text-slate-400">
+            <div class="text-slate-200 font-semibold">Pour débloquer l'APK public en 1 clic :</div>
+            <div>Passez votre dépôt en <strong>Public</strong> sur GitHub (<em>Settings > Danger Zone > Change visibility</em>). L'APK sera alors téléchargeable par n'importe quel smartphone sans compte.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2 flex justify-end">
+        <button onclick="closeDownloadModal()" class="px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    function openDownloadModal(os) {
+      const modal = document.getElementById("download-modal");
+      const title = document.getElementById("modal-title");
+      if (os === 'android') {
+        title.innerHTML = "🤖 Installation SurvIA (Android)";
+      } else {
+        title.innerHTML = "🍎 Installation SurvIA (iOS / SideStore)";
+      }
+      modal.classList.remove("hidden");
+    }
+
+    function closeDownloadModal() {
+      document.getElementById("download-modal").classList.add("hidden");
+    }
+
+    function downloadManifestJson() {
+      const manifest = {
+        version: "1.0.0",
+        name: "SurvIA Offline Knowledge and Model Bundle",
+        storage_required_bytes: 3758096384,
+        models: {
+          recommended_high_ram: {
+            model_id: "gemma-4-E4B-it-int4",
+            size_bytes: 2684354560,
+            min_ram_gb: 8,
+            format: "litertlm",
+            description: "Gemma 4 E4B IT quantifié INT4 (QAT) : Vision multimodale + Réflexion + 3 Skills intégrés."
+          },
+          fallback_low_ram: {
+            model_id: "gemma-4-E2B-it-int4",
+            size_bytes: 1395864371,
+            min_ram_gb: 6,
+            format: "litertlm",
+            description: "Gemma 4 E2B IT pour smartphones avec 6 Go de RAM."
+          }
+        },
+        databases: [
+          {
+            id: "survival_kb",
+            filename: "survival_knowledge.db",
+            size_bytes: 58982400,
+            description: "Base SQLite FTS5 manuels US Army FM 21-76, fiches Where There Is No Doctor et POI vitaux."
+          }
+        ]
+      };
+      const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "survia-download-manifest.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
     let qrcodeInstance = null;
 
     function initQrCode(targetUrl) {
