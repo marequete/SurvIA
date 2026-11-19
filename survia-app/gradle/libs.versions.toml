@@ -8,7 +8,7 @@ androidx-lifecycle = "2.8.7"
 androidx-camera = "1.4.1"
 coroutines = "1.9.0"
 playServicesLocation = "21.3.0"
-litert = "0.3.0"
+litert = "0.19.1"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -32,7 +32,7 @@ camera-view = { module = "androidx.camera:camera-view", version.ref = "androidx-
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 
 # Google AI Edge / LiteRT-LM
-litert-lm-runtime = { module = "com.google.ai.edge.litert:litert-lm", version.ref = "litert" }
+litert-lm-runtime = { module = "com.google.ai.edge.litertlm:litertlm-android", version.ref = "litert" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
