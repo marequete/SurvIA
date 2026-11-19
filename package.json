@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "echo 'SurvIA static build completed successfully'"
+    "build": "node -e \"const fs=require('fs'); fs.mkdirSync('dist', {recursive: true}); fs.copyFileSync('public/index.html', 'dist/index.html'); console.log('[Build] Copied public/index.html to dist/index.html');\""
   }
 }
