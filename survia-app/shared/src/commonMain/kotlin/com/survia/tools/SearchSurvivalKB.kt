@@ -223,6 +223,122 @@ class SearchSurvivalKB {
             )
         }
 
+        // ── ARRÊT CARDIAQUE, RCP, ÉTOUFFEMENT & AVC (Smart-FirstAid & FirstAid) ──
+        if (q.contains("arrêt cardiaque") || q.contains("massage cardiaque") || q.contains("rcp") ||
+            q.contains("défibrillateur") || q.contains("dae") || q.contains("étouffement") ||
+            q.contains("heimlich") || q.contains("pls") || q.contains("avc") || q.contains("respiration") ||
+            q.contains("inconscient qui respire") || q.contains("ne respire plus") || q.contains("cardiaque")
+        ) {
+            return ToolExecutionResult(
+                toolName = "search_survival_kb",
+                outputJson = buildNaturalResponse(
+                    "🫀 Réanimation d'Urgence & Gestes de Premiers Secours Civils (Smart-FirstAid)",
+                    listOf(
+                        "1. VICTIME INCONSCIENTE QUI NE RESPIRE PLUS ➔ ARRÊT CARDIAQUE :",
+                        "   • Alerte immédiate (15/112) + réclamer un DAE.",
+                        "   • Masser immédiatement au centre de la poitrine (talon de la main, bras tendus) : 100 à 120 compressions/minute, profondeur 5 à 6 cm.",
+                        "   • Alterner 30 compressions thoraciques et 2 insufflations (bouche-à-bouche si formé, sinon masser en continu sans s'arrêter).",
+                        "   • Dès que le DAE arrive : l'allumer, coller les électrodes sur torse nu et suivre strictement les instructions vocales.",
+                        "",
+                        "2. ÉTOUFFEMENT TOTAL (La victime ne peut ni parler, ni tousser, mains au cou) :",
+                        "   • Donner 5 claques vigoureuses entre les omoplates avec le plat de la main.",
+                        "   • Si échec : 5 compressions abdominales (Manœuvre de Heimlich) : poing placé entre le nombril et le sternum, tirer d'un coup sec vers l'arrière et le haut.",
+                        "   • Alterner 5 claques / 5 compressions jusqu'au déblocage. Si perte de connaissance ➔ démarrer la RCP.",
+                        "",
+                        "3. INCONSCIENT QUI RESPIRE ➔ POSITION LATÉRALE DE SÉCURITÉ (PLS) :",
+                        "   • Allonger sur le côté, jambe du dessus fléchie à 90° pour caler le corps, bouche ouverte vers le sol pour éviter l'étouffement par vomissement, tête en arrière.",
+                        "",
+                        "4. SUSPICION D'AVC (Protocole FAST / VITE) :",
+                        "   • F (Face) : Visage affaissé d'un côté ? A (Arm) : Incapacité à lever un bras ? S (Speech) : Troubles de l'élocution ? T (Time) : Noter l'heure exacte et appeler d'urgence le 15."
+                    )
+                )
+            )
+        }
+
+        // ── TRAUMATOLOGIE LOURDE, BALISTIQUE & BLAST (survivalRAG / FM 4-25.11) ─
+        if (q.contains("balistique") || q.contains("balle") || q.contains("tir") ||
+            q.contains("explosion") || q.contains("blast") || q.contains("écrasement") ||
+            q.contains("crush") || q.contains("garrot prolongé") || q.contains("amputation")
+        ) {
+            return ToolExecutionResult(
+                toolName = "search_survival_kb",
+                outputJson = buildNaturalResponse(
+                    "💥 Traumatologie Tactique & Lésions de Blast (survivalRAG / US Army FM 4-25.11)",
+                    listOf(
+                        "1. TRAUMATISME BALISTIQUE PÉNÉTRANT :",
+                        "   • Rechercher systématiquement l'orifice d'entrée ET l'orifice de sortie (souvent plus large et délabrant).",
+                        "   • Plaie de membre : garrot tourniquet immédiat serré à bloc.",
+                        "   • Plaie à la jonction (aine, aisselle, cou) : packing hémostatique (bourrage ferme de gaze hémostatique dans la plaie avec pression continue 3 minutes).",
+                        "",
+                        "2. GESTION DU GARROT PROLONGÉ EN ZONE ISOLÉE :",
+                        "   • Noter impérativement l'heure de pose sur le garrot ou le front (T + HH:MM).",
+                        "   • Tolérance sans séquelles majeures : jusqu'à 2 heures. Ne JAMAIS desserrer un garrot posé depuis plus de 2 heures sans présence chirurgicale (risque de choc toxique et arrêt cardiaque immédiat par libération de potassium).",
+                        "",
+                        "3. CRUSH SYNDROME (Syndrome d'écrasement sous décombres) :",
+                        "   • Si un membre est écrasé depuis plus de 2 heures, ne pas lever la charge avant d'avoir posé un garrot en amont pour bloquer les toxines nécrotiques (myoglobine). Hydrater massivement dès que possible."
+                    )
+                )
+            )
+        }
+
+        // ── PHARMACIE DE SURVIE, MORSURES & RÉHYDRATATION (Kiwix / WikiMed) ───
+        if (q.contains("morsure") || q.contains("vipère") || q.contains("serpent") ||
+            q.contains("piqûre") || q.contains("guêpe") || q.contains("frelon") ||
+            q.contains("allergie") || q.contains("choc") || q.contains("médicament") ||
+            q.contains("diarrhée") || q.contains("réhydratation") || q.contains("trousse") || q.contains("pharmacie")
+        ) {
+            return ToolExecutionResult(
+                toolName = "search_survival_kb",
+                outputJson = buildNaturalResponse(
+                    "💊 Pharmacie d'Urgence & Toxicologie de Terrain (WikiMed & Where There Is No Doctor)",
+                    listOf(
+                        "1. MORSURE DE VIPÈRE / SERPENT VENIMEUX :",
+                        "   • Calmer la victime et l'allonger (ralentit la propagation lymphatique du venin). Immobiliser le membre mordu avec une attelle improvisée.",
+                        "   • ⛔ INTERDICTIONS VITALES : Ne JAMAIS inciser, ne jamais aspirer le venin à la bouche, ne pas poser de garrot serré (aggrave la nécrose locale), pas d'alcool.",
+                        "   • Bandage élastique modérément compressif (type bande crêpe) du bout du membre vers la racine.",
+                        "",
+                        "2. CHOC ANAPHYLACTIQUE (Allergie grave après piqûre ou aliment) :",
+                        "   • Signes d'alerte : gonflement des lèvres/gorge, œdème de Quincke, urticaire géant, sifflement respiratoire, chute de tension.",
+                        "   • Injection immédiate d'adrénaline auto-injectable (Epipen / Anapen 0.3 mg adulte) sur la face antéro-latérale de la cuisse à travers le pantalon.",
+                        "",
+                        "3. SOLUTION DE RÉHYDRATATION ORALE OMS (Diarrhée sévère / Choléra) :",
+                        "   • Pour 1 litre d'eau bouillie refroidie : 6 cuillères à café rases de sucre blanc + 1/2 cuillère à café rase de sel.",
+                        "   • Faire boire par petites gorgées fréquentes pour stopper le collapsus hypovolémique."
+                    )
+                )
+            )
+        }
+
+        // ── PSYCHOLOGIE, NŒUDS CRITIQUES & FRANCHISSEMENT (ligi/SurvivalManual) ─
+        if (q.contains("stress") || q.contains("panique") || q.contains("peur") ||
+            q.contains("nœud") || q.contains("corde") || q.contains("rivière") ||
+            q.contains("franchir") || q.contains("avalanche") || q.contains("neige") || q.contains("psychologie")
+        ) {
+            return ToolExecutionResult(
+                toolName = "search_survival_kb",
+                outputJson = buildNaturalResponse(
+                    "🧗 Survie en Milieu Hostile & Franchissement (ligi/SurvivalManual)",
+                    listOf(
+                        "1. PSYCHOLOGIE ET RÈGLE S.T.O.P. :",
+                        "   • S (Stop) : Arrête-toi immédiatement dès que tu réalises que tu es perdu ou en panique.",
+                        "   • T (Think) : Réfléchis calmement, analyse tes réserves d'eau et de calories.",
+                        "   • O (Observe) : Observe le terrain, la météo, le vent, la lumière restante, les traces.",
+                        "   • P (Plan) : Établis un plan d'action d'urgence (d'abord l'abri avant la nuit).",
+                        "",
+                        "2. LES 3 NŒUDS ESSENTIELS DE SURVIE :",
+                        "   • Nœud de Chaise (Bowline) : boucle indéformable qui ne glisse jamais sous forte tension (hélitreuillage, amarrage de sécurité).",
+                        "   • Nœud de Cabestan (Clove Hitch) : bloque une corde sur un piquet ou un tronc pour monter un abri tarp.",
+                        "   • Nœud Plat (Reef Knot) : relie deux cordes de même diamètre.",
+                        "",
+                        "3. FRANCHISSEMENT D'UNE RIVIÈRE EN CRUE :",
+                        "   • Ne jamais traverser pieds nus (perte d'adhérence et blessures sur rochers). Conserver ses chaussures sans les chaussettes.",
+                        "   • Détacher la sangle ventrale du sac à dos pour pouvoir s'en libérer immédiatement si emporté.",
+                        "   • Traverser en diagonale vers l'aval, appuyé sur un bâton tripode solide."
+                    )
+                )
+            )
+        }
+
         // ── PROTOCOLE PAR DÉFAUT / RÈGLE DES 3 ────────────────────────────────
         return ToolExecutionResult(
             toolName = "search_survival_kb",

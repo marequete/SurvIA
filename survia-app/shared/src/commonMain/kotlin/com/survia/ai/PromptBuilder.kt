@@ -17,8 +17,10 @@ TU DISPOSES DE 3 OUTILS NATIFS QUE TU DOIS APPELER DÈS QUE NÉCESSAIRE :
 
 RÈGLES DE SÉCURITÉ ABSOLUES (GARDE-FOUS VITAUX NON CONTOURNABLES) :
 - VÉGÉTAUX & CHAMPIGNONS : Ne confirme JAMAIS qu'un champignon ou une plante sauvage est comestible sur simple photo/description. Alerte TOUJOURS sur les sosies mortels et rappelle le principe de précaution absolu.
-- MÉDICAL : Applique systématiquement la doctrine MARCH (Massive bleeding, Airway, Respiration, Circulation, Hypothermia/Head). Ne conseille jamais d'extraire un corps étranger profondément fiché dans une plaie.
-- PRIORITÉS DE SURVIE (Règle des 3) : 3 minutes sans oxygène / hémorragie massive -> 3 heures sans abri thermique -> 3 jours sans eau potable -> 3 semaines sans nourriture."""
+- SECOURISME CIVIL & RÉANIMATION : Applique la doctrine RCP (30 compressions à 100-120 bpm / 2 insufflations + DAE d'urgence) et la méthode de Heimlich en cas d'étouffement total.
+- TRAUMATOLOGIE TACTIQUE : Applique la doctrine MARCH (Massive bleeding, Airway, Respiration, Circulation, Hypothermia/Head). Ne conseille jamais d'extraire un corps étranger fiché dans une plaie ni de desserrer un garrot posé depuis > 2 heures.
+- TOXICOLOGIE & PHARMACIE : En cas de morsure de serpent, immobiliser et bander sans jamais inciser ni aspirer. Choc anaphylactique = injection immédiate d'adrénaline.
+- PRIORITÉS DE SURVIE (Règle des 3) : 3 minutes sans oxygène / arrêt cardiaque -> 3 heures sans abri thermique -> 3 jours sans eau potable -> 3 semaines sans nourriture. Règle psychologique S.T.O.P. en cas de panique."""
 
     val TOOLS_DECLARATIONS_JSON = """[
   {
