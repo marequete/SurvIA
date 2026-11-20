@@ -190,16 +190,58 @@
 
       </div>
 
-      <!-- Console / Chat de sortie interactive -->
-      <div class="space-y-2">
+      <!-- Chat Simulator Interactif (Inspiré de l'Architecture HAVEN) -->
+      <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Console d'exécution Gemma 4 E4B IT :</span>
-          <button onclick="clearConsole()" class="text-[11px] text-slate-400 hover:text-slate-200">Effacer</button>
+          <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+            <span>●</span> Agent SurvIA • Dialogue Interactif E2E (IA Locale & Bases Certifiées)
+          </span>
+          <button onclick="clearChatSimulator()" class="text-[11px] text-slate-400 hover:text-slate-200">Effacer discussion</button>
         </div>
-        <pre id="console-output" class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto min-h-[180px] max-h-[320px] leading-relaxed">
-[SurvIA Système] Modèle Gemma 4 E4B IT mappé en mémoire flash-to-RAM via mmap (temps d'init: 1.2s).
-[SurvIA Système] 3 outils JSON-RPC prêts. Cliquez sur un scénario ci-dessus pour tester en direct.
-        </pre>
+
+        <!-- Chat Container -->
+        <div id="sim-chat-container" class="space-y-3 p-4 rounded-xl bg-slate-950 border border-slate-800 min-h-[220px] max-h-[380px] overflow-y-auto">
+          <!-- Message initial -->
+          <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 space-y-1.5">
+            <div class="text-emerald-400 font-bold flex items-center gap-1.5">
+              <span>🛡️</span> SurvIA initialisé • Architecture Préparationniste HAVEN
+            </div>
+            <p>Bases de connaissances embarquées : Where There Is No Doctor, US Army FM 21-76, Smart-FirstAid, WikiMed, kit-survie.</p>
+            <p class="text-[11px] text-slate-400">Posez une question en langage naturel ou appuyez sur l'un des scénarios d'urgence rapides ci-dessous :</p>
+          </div>
+        </div>
+
+        <!-- Raccourcis Scénarios HAVEN -->
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button onclick="sendSimMessage('où trouver de l\'eau à proximité')" class="text-xs px-3 py-1.5 rounded-full bg-slate-900 hover:bg-sky-950/60 border border-slate-800 hover:border-sky-500 text-sky-300 transition">
+            💧 Trouver Eau
+          </button>
+          <button onclick="sendSimMessage('comment fabriquer un filtre a eau au charbon')" class="text-xs px-3 py-1.5 rounded-full bg-slate-900 hover:bg-sky-950/60 border border-slate-800 hover:border-sky-500 text-sky-300 transition">
+            🏺 Filtre Charbon
+          </button>
+          <button onclick="sendSimMessage('je me suis coupé avec une ferraille rouillée comment faire pour me désinfecter sans produits désinfectant')" class="text-xs px-3 py-1.5 rounded-full bg-slate-900 hover:bg-emerald-950/60 border border-slate-800 hover:border-emerald-500 text-emerald-300 transition">
+            🩹 Coupure & Tétanos
+          </button>
+          <button onclick="sendSimMessage('hémorragie massive garrot tourniquet')" class="text-xs px-3 py-1.5 rounded-full bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500 text-rose-300 transition">
+            🩺 Triage MARCH
+          </button>
+          <button onclick="sendSimMessage('arrêt cardiaque rcp massage')" class="text-xs px-3 py-1.5 rounded-full bg-slate-900 hover:bg-amber-950/60 border border-slate-800 hover:border-amber-500 text-amber-300 transition">
+            🫀 RCP Arrêt
+          </button>
+          <button onclick="sendSimMessage('refuge abri froid hypothermie')" class="text-xs px-3 py-1.5 rounded-full bg-slate-900 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500 text-indigo-300 transition">
+            🏕️ Refuge & Froid
+          </button>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="flex gap-2">
+          <input type="text" id="sim-input" placeholder="Posez une question de survie ou décrivez une urgence..."
+                 class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                 onkeydown="if(event.key === 'Enter') handleSimSubmit()" />
+          <button onclick="handleSimSubmit()" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition">
+            Envoyer
+          </button>
+        </div>
       </div>
     </section>
 
@@ -375,8 +417,160 @@
       }
     }
 
-    function clearConsole() {
-      document.getElementById("console-output").textContent = "[Console réinitialisée]";
+    function clearChatSimulator() {
+      const container = document.getElementById("sim-chat-container");
+      container.innerHTML = `
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 space-y-1.5">
+          <div class="text-emerald-400 font-bold flex items-center gap-1.5">
+            <span>🛡️</span> SurvIA initialisé • Architecture Préparationniste HAVEN
+          </div>
+          <p>Bases de connaissances embarquées : Where There Is No Doctor, US Army FM 21-76, Smart-FirstAid, WikiMed, kit-survie.</p>
+          <p class="text-[11px] text-slate-400">Posez une question en langage naturel ou appuyez sur l'un des scénarios d'urgence rapides ci-dessous :</p>
+        </div>
+      `;
+    }
+
+    function sendSimMessage(text) {
+      document.getElementById("sim-input").value = text;
+      handleSimSubmit();
+    }
+
+    function handleSimSubmit() {
+      const input = document.getElementById("sim-input");
+      const q = input.value.trim();
+      if (!q) return;
+
+      const container = document.getElementById("sim-chat-container");
+
+      // Bulle utilisateur
+      const userBubble = document.createElement("div");
+      userBubble.className = "flex justify-end";
+      userBubble.innerHTML = `
+        <div class="p-3 rounded-xl bg-sky-950/70 border border-sky-800 text-xs text-sky-100 max-w-[85%]">
+          ${escapeHtml(q)}
+        </div>
+      `;
+      container.appendChild(userBubble);
+      input.value = "";
+      container.scrollTop = container.scrollHeight;
+
+      // Simulation du délai d'analyse locale (< 150ms)
+      setTimeout(() => {
+        const result = executeSurvIAEngine(q);
+
+        const aiBubble = document.createElement("div");
+        aiBubble.className = "flex justify-start";
+        aiBubble.innerHTML = `
+          <div class="p-3.5 rounded-xl ${result.isWarning ? 'bg-rose-950/40 border-rose-800 text-rose-100' : 'bg-slate-900 border-slate-800 text-slate-200'} border text-xs space-y-2 max-w-[95%]">
+            <div class="whitespace-pre-line font-mono text-[11px] leading-relaxed">${escapeHtml(result.text)}</div>
+            ${result.button ? `
+              <div class="pt-2">
+                <a href="${result.button.uri}" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition shadow">
+                  <span>${result.button.label}</span>
+                </a>
+              </div>
+            ` : ''}
+          </div>
+        `;
+        container.appendChild(aiBubble);
+        container.scrollTop = container.scrollHeight;
+      }, 120);
+    }
+
+    function executeSurvIAEngine(rawQuery) {
+      const q = rawQuery.toLowerCase()
+        .replace(/[éèêë]/g, 'e').replace(/[àâä]/g, 'a').replace(/[îï]/g, 'i')
+        .replace(/[ôö]/g, 'o').replace(/[ùûü]/g, 'u').replace(/[ç]/g, 'c');
+
+      // Garde-fou Botanique
+      if (q.includes("champignon") || q.includes("comestible") || q.includes("baie") || q.includes("plante sauvage") || q.includes("cueillir")) {
+        return {
+          isWarning: true,
+          text: `🔍 DIAGNOSTIC PERSONNALISÉ\n• Demande : « ${rawQuery} »\n• Analyse : Identification Botanique & Mycologique\n• Base certifiée : Soonz-38/kit-survie & Where There Is No Doctor\n• Statut : GARDE-FOU VITAL ACTIF\n───────────────────────────────────────────\n⚠️ DANGER VITAL — Champignons & Plantes Sauvages\n\nGARDE-FOU STRICT NON CONTOURNABLE :\nL'agent IA SurvIA a l'interdiction formelle de certifier la comestibilité d'un végétal ou champignon sauvage sur simple description.\n\n🍄 Sosies Mortels Documentés :\n  • Amanite phalloïde : sosie de l'Agaric des bois et de la Lépiote. Amatoxine mortelle même après cuisson (détruit foie et reins en 6-24h).\n  • Grande Ciguë : sosie mortel de la Carotte sauvage. Asphyxie respiratoire foudroyante.\n\n🛡️ RÈGLE D'OR : En situation de survie, le jeûne de 3 semaines est infiniment moins risqué que l'ingestion d'un végétal douteux.\nEn cas d'ingestion : Ne pas faire vomir, contacter le 15/112 immédiatement.`
+        };
+      }
+
+      // Eau : Localisation
+      if ((q.includes("eau") || q.includes("source") || q.includes("soif")) && (q.includes("ou") || q.includes("trouver") || q.includes("proximite") || q.includes("chercher"))) {
+        return {
+          isWarning: false,
+          text: `🔍 DIAGNOSTIC PERSONNALISÉ\n• Demande : « ${rawQuery} »\n• Analyse : Repérage & Localisation de Points d'Eau\n• Base certifiée : US Army FM 21-76 Survival Manual\n• Statut : PROTOCOLE CERTIFIÉ HORS-LIGNE\n───────────────────────────────────────────\n💧 Repérage de l'Eau sur le Terrain & Orientation\n\n1. INDICES VISUELS NATURELS :\n   • Talwegs et dépressions : suivez toujours les lignes de creux vers l'aval.\n   • Végétation témoin : les saules, joncs et roseaux indiquent une nappe à moins de 1 mètre sous le sol.\n   • Vol des oiseaux au lever et coucher du soleil : ils volent droit vers les points d'eau.\n\n2. COLLECTE DE FORTUNE :\n   • Rosée matinale : absorber avec un tissu propre sur l'herbe haute avant l'aube.\n\n👉 Cliquez ci-dessous pour localiser la source la plus proche sur votre carte hors-ligne :`,
+          button: {
+            label: "📍 Localiser le point d'eau : Source Font-Vive (530m NE)",
+            uri: "om://map?ll=45.1927,5.7276&n=Source_Font_Vive"
+          }
+        };
+      }
+
+      // Eau : Filtre
+      if (q.includes("filtr") || q.includes("charbon") || q.includes("sable") || q.includes("boue")) {
+        return {
+          isWarning: false,
+          text: `🔍 DIAGNOSTIC PERSONNALISÉ\n• Demande : « ${rawQuery} »\n• Analyse : Fabrication d'un Filtre Multicouche de Fortune\n• Base certifiée : kit-survie Soonz-38 & US Army FM 21-76\n• Statut : PROTOCOLE CERTIFIÉ HORS-LIGNE\n───────────────────────────────────────────\n🏺 Filtre à Eau Improvisé (Charbon & Sable)\n\n1. CONFECTION DU CORPS :\n   • Bouteille plastique goulot vers le bas, fond découpé.\n\n2. LES 4 COUCHES INDISPENSABLES (de bas en haut) :\n   • Couche 1 (Fond) : Tissu fin ou compresse propre.\n   • Couche 2 (Adsorption) : 5 à 8 cm de charbon de bois éteint pilé en fins morceaux (adsorbe les toxines chimiques et odeurs).\n   • Couche 3 (Filtration fine) : 5 à 10 cm de sable fin propre.\n   • Couche 4 (Débris grossiers) : 5 cm de graviers.\n\n⛔ RÈGLE ABSOLUE : La filtration clarifie l'eau mais ne détruit pas les virus. Portez impérativement à ébullition franche 1 minute avant consommation.`
+        };
+      }
+
+      // Eau : Ébullition & Javel
+      if (q.includes("eau") || q.includes("potable") || q.includes("purif") || q.includes("javel") || q.includes("bouillir")) {
+        return {
+          isWarning: false,
+          text: `🔍 DIAGNOSTIC PERSONNALISÉ\n• Demande : « ${rawQuery} »\n• Analyse : Potabilisation & Désinfection d'Urgence de l'Eau\n• Base certifiée : US Army FM 21-76 & Where There Is No Doctor\n• Statut : PROTOCOLE CERTIFIÉ HORS-LIGNE\n───────────────────────────────────────────\n💧 Potabilisation d'Urgence (Ébullition & Dosage Chimique)\n\n1. ÉBULLITION FRANCHE (Méthode de référence) :\n   • 1 minute complète à gros bouillons (+ 1 min par 1000m d'altitude).\n   • Élimine 100% des agents pathogènes (bactéries, virus, parasites).\n\n2. DÉSINFECTION CHIMIQUE DE SECOURS :\n   • Eau de Javel classique non parfumée : 2 gouttes par litre d'eau claire (4 gouttes si eau froide ou trouble), 30 minutes de contact.\n   • Teinture d'iode 2% : 5 gouttes par litre, repos 30 min.\n\n⛔ DANGER : Ne jamais boire d'eau de mer ni d'urine.`,
+          button: {
+            label: "📍 Localiser le point d'eau sur la carte (530m NE)",
+            uri: "om://map?ll=45.1927,5.7276&n=Source_Font_Vive"
+          }
+        };
+      }
+
+      // Coupure & Ferraille rouillée / Tétanos
+      if (q.includes("coup") || q.includes("plaie") || q.includes("rouill") || q.includes("ferraill") || q.includes("tetanos") || q.includes("desinfect")) {
+        const isTetanus = q.includes("rouill") || q.includes("ferraill") || q.includes("clou") || q.includes("tetanos") || q.includes("vaccin");
+        return {
+          isWarning: isTetanus,
+          text: `🔍 DIAGNOSTIC PERSONNALISÉ\n• Demande : « ${rawQuery} »\n• Analyse : Soin des Plaies, Coupures & Prévention du Tétanos\n• Base certifiée : Where There Is No Doctor (Dr. David Werner) & FirstAid\n• Statut : ${isTetanus ? 'ALERTE TÉTANOS VITAL' : 'PROTOCOLE CERTIFIÉ HORS-LIGNE'}\n───────────────────────────────────────────\n🩹 Soin d'Urgence d'une Coupure & Désinfection Naturelle\n\n1. LAVAGE MÉCANIQUE IMMÉDIAT (Élimine 90% des bactéries) :\n   • Rincer la plaie sous un filet continu d'eau potable ou bouillie refroidie pendant 5 minutes entières.\n   • Savonner le contour de la peau (ne pas frotter agressivement l'intérieur de la plaie).\n\n2. DÉSINFECTION NATURELLE DE FORTUNE :\n   • Miel pur non pasteurisé : puissant antibactérien naturel par osmose et libération lente de peroxyde. Appliquer une fine couche sur plaie propre.\n   • Sérum physiologique maison : 1 cuillère à café rase de sel dans 1L d'eau bouillie refroidie pour irriguer.\n   • ⛔ INTERDIT FORMEL : Ne jamais verser d'alcool à brûler, d'eau de Javel, d'essence ou d'urine.\n\n3. ALERTE VACCIN ANTITÉTANIQUE :\n   • La bactérie anaérobie du tétanos prolifère dans les plaies souillées.\n   • Si le dernier vaccin date de > 5 ans pour plaie souillée (ou > 10 ans) : consultation médicale obligatoire dans les 48h pour rappel + sérum.`
+        };
+      }
+
+      // Triage MARCH
+      if (q.includes("hemorragie") || q.includes("garrot") || q.includes("saign") || q.includes("march")) {
+        return {
+          isWarning: true,
+          text: `🔍 DIAGNOSTIC PERSONNALISÉ\n• Demande : « ${rawQuery} »\n• Analyse : Hémorragie Massive & Protocole MARCH\n• Base certifiée : bdkoeh/survivalRAG & US Army FM 4-25.11\n• Statut : URGENCE VITALE IMMÉDIATE\n───────────────────────────────────────────\n🩺 Arrêt d'Urgence d'une Hémorragie Massive\n\n1. COMPRESSION DIRECTE :\n   • Appui manuel direct ferme avec un tissu propre pendant 10 minutes sans relâcher.\n\n2. GARROT TOURNIQUET (Si saignement pulsatile en jet sur un membre) :\n   • Poser 5 à 7 cm au-dessus de la plaie (jamais sur une articulation).\n   • Serrer jusqu'à l'arrêt total du saignement.\n   • Noter impérativement l'heure de pose sur le front ou le garrot.\n   • ⛔ Ne JAMAIS desserrer un garrot posé depuis plus de 2 heures.`
+        };
+      }
+
+      // Urgence cardiaque / étouffement
+      if (q.includes("arret") || q.includes("cardiaque") || q.includes("rcp") || q.includes("etouff") || q.includes("heimlich")) {
+        return {
+          isWarning: true,
+          text: `🔍 DIAGNOSTIC PERSONNALISÉ\n• Demande : « ${rawQuery} »\n• Analyse : Urgences Vitales Civiles (Arrêt Cardiaque / Heimlich)\n• Base certifiée : Smart-FirstAid & WikiMed\n• Statut : SAUVETAGE IMMÉDIAT\n───────────────────────────────────────────\n🫀 Gestes d'Urgence Vitale\n\n1. INCONSCIENT SANS RESPIRATION ➔ ARRÊT CARDIAQUE :\n   • Appeler le 15/112 + réclamer un DAE.\n   • Masser immédiatement au centre de la poitrine : 100 à 120 compressions/minute, profondeur 5 à 6 cm.\n\n2. ÉTOUFFEMENT TOTAL (Impossible de parler ou tousser) :\n   • 5 claques dans le dos entre les omoplates.\n   • Si échec : 5 compressions abdominales (Manœuvre de Heimlich) au creux de l'estomac vers le haut.`
+        };
+      }
+
+      // Refuge / Froid
+      if (q.includes("refuge") || q.includes("abri") || q.includes("froid") || q.includes("hypothermie")) {
+        return {
+          isWarning: false,
+          text: `🔍 DIAGNOSTIC PERSONNALISÉ\n• Demande : « ${rawQuery} »\n• Analyse : Protection Thermique & Refuge de Montagne\n• Base certifiée : US Army FM 21-76 Survival Manual\n• Statut : PROTOCOLE CERTIFIÉ HORS-LIGNE\n───────────────────────────────────────────\n🏕️ Abri & Lutte contre l'Hypothermie\n\n1. ISOLATION DU SOL (Priorité absolue) :\n   • Matelas de feuilles sèches ou branches de conifères de 30 à 50 cm d'épaisseur.\n\n2. COUVERTURE DE SURVIE :\n   • Face dorée vers l'extérieur (argentée contre le corps) pour piéger 90% du rayonnement infrarouge.\n\n👉 Cliquez ci-dessous pour afficher le refuge le plus proche :`,
+          button: {
+            label: "🏕️ Localiser le refuge : Belledonne (1.2km)",
+            uri: "om://map?ll=45.1950,5.7310&n=Refuge_Belledonne"
+          }
+        };
+      }
+
+      // Réponse d'aide générale
+      return {
+        isWarning: false,
+        text: `🔍 DIAGNOSTIC PERSONNALISÉ\n• Demande : « ${rawQuery} »\n• Analyse : Orientation Générale de Survie (Règle des 3)\n• Base certifiée : US Army FM 21-76 & Wilderness First Aid\n• Statut : ASSISTANT OPÉRATIONNEL\n───────────────────────────────────────────\n🧭 SurvIA — Priorités Physiologiques de Terrain\n\n• 3 minutes sans oxygène (ou hémorragie massive)\n• 3 heures sans abri thermique par grand froid / humidité\n• 3 jours sans eau potable\n• 3 semaines sans nourriture\n\nPosez une question sur votre situation précise (blessure, désinfection, eau, froid, poison, orientation) pour afficher le protocole exact et les actions de carte.`
+      };
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.innerText = text;
+      return div.innerHTML;
     }
 
     // Initialisation au chargement de la page
