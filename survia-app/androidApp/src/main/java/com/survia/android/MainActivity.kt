@@ -237,32 +237,29 @@ fun SurvIAMainScreen(
                                         "\nPoints d'eau ou refuges proches :\n${gpsResult.outputJson}\n"
                                     } else ""
 
-                                    // ÉTAPE 2 : GÉNÉRATION VIA GEMMA ON-DEVICE (Template Officiel Gemma <start_of_turn>)
-                                    if (modelManager.isReady() && !isFatal) {
+                                    // ÉTAPE 2 : RESTITUTION SÉCURISÉE SANS ALTÉRATION DES PROTOCOLES MÉDICAUX
+                                    // Règle d'or médicale : un LLM 2B INT4 ne doit JAMAIS réécrire un protocole d'urgence
+                                    // sous peine d'hallucinations mortelles. La vérité terrain certifiée est restituée directement.
+                                    val fullContextResponse = kbResult.outputJson + if (gpsContext.isNotBlank()) "\n\n$gpsContext" else ""
+
+                                    if (kbResult.isFatalGuardrailTriggered || kbResult.outputJson.contains("PROTOCOLE CERTIFIÉ")) {
+                                        // Restitution directe de la base de données certifiée (zéro hallucination garantie)
+                                        finalResponse = fullContextResponse
+                                    } else if (modelManager.isReady()) {
+                                        // Pour une question purement ouverte sans protocole vital, assistance concise Gemma
                                         try {
-                                            val strictGemmaPrompt = """<start_of_turn>user
-Tu es SurvIA, un expert de secourisme d'urgence et de survie hors-ligne.
-Consignes obligatoires :
-1. Réponds de façon concise, calme et pratique en français.
-2. Applique DIRECTEMENT les protocoles de terrain vérifiés ci-dessous sans inventer :
-${kbResult.outputJson}
-$gpsContext
-Question de l'utilisateur : $userQ<end_of_turn>
-<start_of_turn>model
-""".trimIndent()
-                                            val rawLlm = modelManager.generateResponse(strictGemmaPrompt)
-                                            // Si le LLM donne une réponse trop courte ou absurde, fallback propre sur la KB
-                                            finalResponse = if (rawLlm.length > 20 && !rawLlm.contains("afk") && !rawLlm.contains("combat")) {
+                                            val shortPrompt = "<start_of_turn>user\nRéponds brièvement et calmement en français :\n$userQ<end_of_turn>\n<start_of_turn>model\n"
+                                            val rawLlm = modelManager.generateResponse(shortPrompt)
+                                            finalResponse = if (rawLlm.isNotBlank() && !rawLlm.contains("afk") && !rawLlm.contains("propulsé")) {
                                                 rawLlm.replace("<start_of_turn>", "").replace("<end_of_turn>", "").replace("model", "").trim()
                                             } else {
-                                                kbResult.outputJson
+                                                fullContextResponse
                                             }
                                         } catch (e: Exception) {
-                                            finalResponse = kbResult.outputJson
+                                            finalResponse = fullContextResponse
                                         }
                                     } else {
-                                        // Mode Direct / Garde-Fou Vital : Restitution directe des protocoles certifiés
-                                        finalResponse = kbResult.outputJson + if (gpsContext.isNotBlank()) "\n\n$gpsContext" else ""
+                                        finalResponse = fullContextResponse
                                     }
 
                                     // Remplacement de l'indicateur d'analyse par la réponse finale
