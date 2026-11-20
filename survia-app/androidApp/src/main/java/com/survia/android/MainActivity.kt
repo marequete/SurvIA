@@ -202,32 +202,59 @@ fun SurvIAMainScreen(
                                     var finalResponse = ""
                                     var isFatal = false
 
-                                    // Si le modèle on-device Gemma est prêt, l'utiliser en priorité
-                                    if (modelManager.isReady()) {
-                                        try {
-                                            val systemPrompt = "Tu es SurvIA, un expert de survie hors-ligne. Réponds de façon concise, calme et vitale à la question : $userQ"
-                                            finalResponse = modelManager.generateResponse(systemPrompt)
-                                        } catch (e: Exception) {
-                                            // Fallback vers le moteur KB si exception
-                                            val res = onExecuteTool("search_survival_kb", """{"query":"$userQ"}""")
-                                            finalResponse = res.outputJson
-                                            isFatal = res.isFatalGuardrailTriggered
-                                        }
-                                    } else {
-                                        // Mode Fallback instantané : moteur de règles & base de connaissances
-                                        val qLow = userQ.lowercase()
-                                        val toolToCall = when {
-                                            qLow.contains("gps") || qLow.contains("coordonnées") ||
+                                    // ÉTAPE 1 : RAG LOCAL STRICT — Extraction systématique des protocoles certifiés
+                                    val qLow = userQ.lowercase()
+                                    val isGeoQuery = qLow.contains("gps") || qLow.contains("coordonnées") ||
                                             qLow.contains("où") || qLow.contains("carte") ||
-                                            qLow.contains("position") -> "get_gps_and_map"
-                                            else -> "search_survival_kb"
-                                        }
-                                        val res = onExecuteTool(toolToCall, """{"query":"$userQ"}""")
-                                        finalResponse = res.outputJson
-                                        isFatal = res.isFatalGuardrailTriggered
+                                            qLow.contains("position") || qLow.contains("eau") || qLow.contains("refuge")
+
+                                    val kbResult = onExecuteTool("search_survival_kb", """{"query":"$userQ"}""")
+                                    isFatal = kbResult.isFatalGuardrailTriggered
+
+                                    val gpsContext = if (isGeoQuery) {
+                                        val gpsResult = onExecuteTool("get_gps_and_map", """{"action":"search_poi"}""")
+                                        "\n### COORDONNÉES GPS & POINTS VITAUX (HORS-LIGNE) :\n${gpsResult.outputJson}\n"
+                                    } else ""
+
+                                    // ÉTAPE 2 : MÉMOIRE CONVERSATIONNELLE (Historique des 6 derniers échanges)
+                                    val recentHistory = messages.filter { !it.isThinking }.takeLast(6).joinToString("\n") { msg ->
+                                        if (msg.isUser) "Utilisateur: ${msg.text}" else "SurvIA: ${msg.text}"
                                     }
 
-                                    // Remplacement de l'indicateur d'analyse par la réponse
+                                    // ÉTAPE 3 : GÉNÉRATION VIA GEMMA ON-DEVICE (ou Fallback KB si non téléchargé)
+                                    if (modelManager.isReady() && !isFatal) {
+                                        try {
+                                            val strictGemmaPrompt = """
+Tu es SurvIA, un Agent IA de Survie et Secourisme 100% Hors-Ligne propulsé par Gemma on-device.
+Tu es calme, méthodique, direct et ultra-protecteur.
+
+### PROTOCOLES CERTIFIÉS DE LA BASE LOCALE (SOURCE DE VÉRITÉ NON-ALTÉRABLE) :
+${kbResult.outputJson}
+$gpsContext
+### DIRECTIVES ANTI-HALLUCINATION ABSOLUES :
+1. Fonde tes recommandations EXCLUSIVEMENT sur les protocoles certifiés ci-dessus. N'invente aucun geste médical.
+2. Si un point d'eau ou refuge GPS est mentionné, guide précisément l'utilisateur avec son azimut et distance.
+3. Sois concis et utilise des puces claires pour les gestes vitaux à réaliser immédiatement.
+
+### HISTORIQUE DU DIALOGUE :
+$recentHistory
+
+### NOUVELLE QUESTION DE L'UTILISATEUR :
+$userQ
+
+Réponse de SurvIA :
+""".trimIndent()
+                                            finalResponse = modelManager.generateResponse(strictGemmaPrompt)
+                                        } catch (e: Exception) {
+                                            // Fallback vers les faits bruts de la base en cas d'exception
+                                            finalResponse = kbResult.outputJson + if (gpsContext.isNotBlank()) "\n\n$gpsContext" else ""
+                                        }
+                                    } else {
+                                        // Mode Direct / Garde-Fou Vital : Restitution directe des protocoles certifiés
+                                        finalResponse = kbResult.outputJson + if (gpsContext.isNotBlank()) "\n\n$gpsContext" else ""
+                                    }
+
+                                    // Remplacement de l'indicateur d'analyse par la réponse finale
                                     if (thinkingIdx < messages.size) {
                                         messages.removeAt(thinkingIdx)
                                     }
