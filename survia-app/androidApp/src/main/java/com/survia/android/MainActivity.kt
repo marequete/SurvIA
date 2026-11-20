@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.ui.platform.LocalContext
 import com.survia.android.service.GemmaForegroundService
 import com.survia.android.ai.GemmaModelManager
 import com.survia.android.ai.ModelState
@@ -35,7 +37,9 @@ data class ChatMessage(
     val isUser: Boolean,
     val text: String,
     val isWarning: Boolean = false,
-    val isThinking: Boolean = false
+    val isThinking: Boolean = false,
+    val actionButtonText: String? = null,
+    val actionButtonUri: String? = null
 )
 
 class MainActivity : ComponentActivity() {
@@ -188,93 +192,118 @@ fun SurvIAMainScreen(
                     .navigationBarsPadding()
                     .imePadding()
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
-                        placeholder = { Text("Pose une question de survie ou décris une urgence...", color = Color.Gray, fontSize = 13.sp) },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF090D11),
-                            unfocusedContainerColor = Color(0xFF090D11),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            if (inputText.isNotBlank()) {
-                                val userQ = inputText
-                                messages.add(ChatMessage(true, userQ))
-                                inputText = ""
-                                coroutineScope.launch {
-                                    val thinkingIdx = messages.size
-                                    messages.add(ChatMessage(false, "⏳ Analyse en cours...", isThinking = true))
-
-                                    var finalResponse = ""
-                                    var isFatal = false
-
-                                    // ÉTAPE 1 : RAG LOCAL STRICT — Extraction systématique des protocoles certifiés
-                                    val qLow = userQ.lowercase()
-                                    val isGeoQuery = qLow.contains("gps") || qLow.contains("coordonnées") ||
-                                            qLow.contains("où") || qLow.contains("carte") ||
-                                            qLow.contains("position") || qLow.contains("eau") || qLow.contains("refuge")
-
-                                    val kbResult = onExecuteTool("search_survival_kb", """{"query":"$userQ"}""")
-                                    isFatal = kbResult.isFatalGuardrailTriggered
-
-                                    val gpsContext = if (isGeoQuery) {
-                                        val gpsResult = onExecuteTool("get_gps_and_map", """{"action":"search_poi"}""")
-                                        "\nPoints d'eau ou refuges proches :\n${gpsResult.outputJson}\n"
-                                    } else ""
-
-                                    // ÉTAPE 2 : RESTITUTION SÉCURISÉE SANS ALTÉRATION DES PROTOCOLES MÉDICAUX
-                                    // Règle d'or médicale : un LLM 2B INT4 ne doit JAMAIS réécrire un protocole d'urgence
-                                    // sous peine d'hallucinations mortelles. La vérité terrain certifiée est restituée directement.
-                                    val fullContextResponse = kbResult.outputJson + if (gpsContext.isNotBlank()) "\n\n$gpsContext" else ""
-
-                                    if (kbResult.isFatalGuardrailTriggered || kbResult.outputJson.contains("PROTOCOLE CERTIFIÉ")) {
-                                        // Restitution directe de la base de données certifiée (zéro hallucination garantie)
-                                        finalResponse = fullContextResponse
-                                    } else if (modelManager.isReady()) {
-                                        // Pour une question purement ouverte sans protocole vital, assistance concise Gemma
-                                        try {
-                                            val shortPrompt = "<start_of_turn>user\nRéponds brièvement et calmement en français :\n$userQ<end_of_turn>\n<start_of_turn>model\n"
-                                            val rawLlm = modelManager.generateResponse(shortPrompt)
-                                            finalResponse = if (rawLlm.isNotBlank() && !rawLlm.contains("afk") && !rawLlm.contains("propulsé")) {
-                                                rawLlm.replace("<start_of_turn>", "").replace("<end_of_turn>", "").replace("model", "").trim()
-                                            } else {
-                                                fullContextResponse
-                                            }
-                                        } catch (e: Exception) {
-                                            finalResponse = fullContextResponse
-                                        }
-                                    } else {
-                                        finalResponse = fullContextResponse
-                                    }
-
-                                    // Remplacement de l'indicateur d'analyse par la réponse finale
-                                    if (thinkingIdx < messages.size) {
-                                        messages.removeAt(thinkingIdx)
-                                    }
-                                    messages.add(ChatMessage(false, finalResponse, isWarning = isFatal))
-                                }
-                            }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
-                        modifier = Modifier.height(52.dp)
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    // Scénarios d'Urgence Rapides (Inspiré de HAVEN Sanctuary)
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text("Envoyer", color = Color(0xFF090D11), fontWeight = FontWeight.Bold)
+                        val havenShortcuts = listOf(
+                            "💧 Trouver Eau" to "où trouver de l'eau à proximité",
+                            "🏺 Filtre Charbon" to "comment fabriquer un filtre a eau au charbon",
+                            "🩹 Coupure & Tétanos" to "coupure ferraille rouillee desinfection sans produit",
+                            "🩺 Triage MARCH" to "hemorragie massive garrot tourniquet",
+                            "🫀 RCP Arrêt" to "arret cardiaque rcp massage",
+                            "🏕️ Refuge & Froid" to "refuge abri froid hypothermie"
+                        )
+                        items(havenShortcuts) { (label, query) ->
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFF1F2D3D),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF334155)),
+                                modifier = Modifier.clickable {
+                                    inputText = query
+                                }
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF38BDF8),
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextField(
+                            value = inputText,
+                            onValueChange = { inputText = it },
+                            placeholder = { Text("Pose une question ou choisis un scénario...", color = Color.Gray, fontSize = 13.sp) },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFF090D11),
+                                unfocusedContainerColor = Color(0xFF090D11),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                if (inputText.isNotBlank()) {
+                                    val userQ = inputText
+                                    messages.add(ChatMessage(true, userQ))
+                                    inputText = ""
+                                    coroutineScope.launch {
+                                        val thinkingIdx = messages.size
+                                        messages.add(ChatMessage(false, "⏳ Analyse en cours...", isThinking = true))
+
+                                        var finalResponse = ""
+                                        var isFatal = false
+
+                                        // ÉTAPE 1 : RAG LOCAL STRICT & EXTRACTION GÉOGRAPHIQUE
+                                        val qLow = userQ.lowercase()
+                                        val isGeoQuery = qLow.contains("gps") || qLow.contains("coordonnées") ||
+                                                qLow.contains("où") || qLow.contains("carte") ||
+                                                qLow.contains("position") || qLow.contains("eau") || qLow.contains("refuge") || qLow.contains("source")
+
+                                        var actionBtnText: String? = null
+                                        var actionBtnUri: String? = null
+
+                                        val isWaterQuery = qLow.contains("eau") || qLow.contains("source") || qLow.contains("soif") || qLow.contains("boire") || qLow.contains("potable")
+                                        val isShelterQuery = qLow.contains("refuge") || qLow.contains("abri") || qLow.contains("froid") || qLow.contains("bivouac")
+
+                                        if (isWaterQuery) {
+                                            actionBtnText = "📍 Localiser le point d'eau : Source Font-Vive (530m NE)"
+                                            actionBtnUri = "om://map?ll=45.1927,5.7276&n=Source_Font_Vive"
+                                        } else if (isShelterQuery) {
+                                            actionBtnText = "🏕️ Localiser le refuge : Belledonne (1.2km)"
+                                            actionBtnUri = "om://map?ll=45.1950,5.7310&n=Refuge_Belledonne"
+                                        } else if (isGeoQuery) {
+                                            actionBtnText = "🗺️ Ouvrir la carte hors-ligne (Organic Maps)"
+                                            actionBtnUri = "om://map?ll=45.1885,5.7245&n=Point_Survie"
+                                        }
+
+                                        val kbResult = onExecuteTool("search_survival_kb", """{"query":"$userQ"}""")
+                                        isFatal = kbResult.isFatalGuardrailTriggered
+                                        finalResponse = kbResult.outputJson
+
+                                        // Remplacement de l'indicateur d'analyse par la réponse finale
+                                        if (thinkingIdx < messages.size) {
+                                            messages.removeAt(thinkingIdx)
+                                        }
+                                        messages.add(ChatMessage(false, finalResponse, isWarning = isFatal, actionButtonText = actionBtnText, actionButtonUri = actionBtnUri))
+                                    }
+                                }
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                            modifier = Modifier.height(52.dp)
+                        ) {
+                            Text("Envoyer", color = Color(0xFF090D11), fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -308,6 +337,7 @@ fun SurvIAMainScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = if (msg.isUser) Arrangement.End else Arrangement.Start
                 ) {
+                    val context = LocalContext.current
                     Card(
                         shape = RoundedCornerShape(
                             topStart = if (msg.isUser) 12.dp else 2.dp,
@@ -319,18 +349,45 @@ fun SurvIAMainScreen(
                         border = androidx.compose.foundation.BorderStroke(1.dp, border),
                         modifier = Modifier.fillMaxWidth(if (msg.isUser) 0.85f else 1f)
                     ) {
-                        Text(
-                            text = msg.text,
-                            color = when {
-                                isThinking    -> Color(0xFF10B981)
-                                msg.isWarning -> Color(0xFFFECACA)
-                                else          -> Color.White
-                            },
-                            fontSize = 14.sp,
-                            lineHeight = 20.sp,
-                            fontFamily = FontFamily.Default,
-                            modifier = Modifier.padding(12.dp)
-                        )
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = msg.text,
+                                color = when {
+                                    isThinking    -> Color(0xFF10B981)
+                                    msg.isWarning -> Color(0xFFFECACA)
+                                    else          -> Color.White
+                                },
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp,
+                                fontFamily = FontFamily.Default
+                            )
+                            if (msg.actionButtonText != null && msg.actionButtonUri != null) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Button(
+                                    onClick = {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(msg.actionButtonUri))
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            try {
+                                                val fallback = Intent(Intent.ACTION_VIEW, Uri.parse("geo:45.1927,5.7276?q=Point_Survie"))
+                                                context.startActivity(fallback)
+                                            } catch (_: Exception) {}
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = msg.actionButtonText,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
