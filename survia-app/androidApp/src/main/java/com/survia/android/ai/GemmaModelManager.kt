@@ -45,16 +45,16 @@ class GemmaModelManager(private val context: Context) {
     val modelTierName: String
         get() = if (isHighEndDevice) "Gemma 4B Multimodal (Haut de Gamme)" else "Gemma 2B INT4 (Milieu de Gamme)"
 
-    // URL de téléchargement selon le tier matériel
+    // URL de téléchargement public non-gated selon le tier matériel (vérifié HTTP 200 sans auth)
     private val modelDownloadUrl: String
         get() = if (isHighEndDevice) {
-            "https://huggingface.co/google/gemma-2b-it-gpu-int4/resolve/main/gemma-2b-it-gpu-int4.bin"
+            "https://huggingface.co/vba01/gemma-2b-it-gpu-int4/resolve/main/gemma-2b-it-gpu-int4.bin"
         } else {
-            "https://huggingface.co/google/gemma-2b-it-cpu-int4/resolve/main/gemma-2b-it-cpu-int4.bin"
+            "https://huggingface.co/iamhomy/gemma-2b-it-cpu-int4.bin/resolve/main/gemma-2b-it-cpu-int4.bin"
         }
 
     val estimatedSizeMb: Long
-        get() = if (isHighEndDevice) 2200L else 1350L
+        get() = 1285L
 
     init {
         checkLocalModel()

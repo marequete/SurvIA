@@ -113,6 +113,7 @@ fun SurvIAMainScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF111820))
+                    .statusBarsPadding()
                     .padding(16.dp)
             ) {
                 Row(
@@ -169,11 +170,17 @@ fun SurvIAMainScreen(
             }
         },
         bottomBar = {
-            Surface(color = Color(0xFF111820), modifier = Modifier.fillMaxWidth()) {
+            Surface(
+                color = Color(0xFF111820),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextField(
@@ -181,11 +188,14 @@ fun SurvIAMainScreen(
                         onValueChange = { inputText = it },
                         placeholder = { Text("Pose une question de survie ou décris une urgence...", color = Color.Gray, fontSize = 13.sp) },
                         modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color(0xFF090D11),
                             unfocusedContainerColor = Color(0xFF090D11),
                             focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            unfocusedTextColor = Color.White,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
                         )
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -262,7 +272,9 @@ Réponse de SurvIA :
                                 }
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                        modifier = Modifier.height(52.dp)
                     ) {
                         Text("Envoyer", color = Color(0xFF090D11), fontWeight = FontWeight.Bold)
                     }
