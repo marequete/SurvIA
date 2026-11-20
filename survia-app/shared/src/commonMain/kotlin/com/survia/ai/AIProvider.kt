@@ -14,7 +14,9 @@ sealed interface SessionState {
 data class ToolExecutionResult(
     val toolName: String,
     val outputJson: String,
-    val isFatalGuardrailTriggered: Boolean = false
+    val isFatalGuardrailTriggered: Boolean = false,
+    val actionButtonText: String? = null,
+    val actionButtonUri: String? = null
 )
 
 /**
