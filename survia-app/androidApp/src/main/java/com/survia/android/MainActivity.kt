@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.rememberLazyListState
 import com.survia.android.service.GemmaForegroundService
 import com.survia.android.ai.GemmaModelManager
 import com.survia.android.ai.ModelState
@@ -100,12 +101,20 @@ fun SurvIAMainScreen(
 ) {
     var inputText by remember { mutableStateOf("") }
     val modelState by modelManager.state.collectAsState()
+    val listState = rememberLazyListState()
     val messages = remember {
         mutableStateListOf(
             ChatMessage(false, "SurvIA initialisé. Mode 100% hors-ligne actif. Outils de survie (Base de connaissances, GPS/Cartes, Vision) prêts.")
         )
     }
     val coroutineScope = rememberCoroutineScope()
+
+    // Défilement automatique vers le dernier message
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -114,37 +123,38 @@ fun SurvIAMainScreen(
                     .fillMaxWidth()
                     .background(Color(0xFF111820))
                     .statusBarsPadding()
-                    .padding(16.dp)
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text("SURVIA • AGENT HORS-LIGNE", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 16.sp)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("SURVIA • AGENT HORS-LIGNE", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 15.sp)
                         val statusText = when (val s = modelState) {
-                            is ModelState.Ready -> "● Modèle On-Device : ${s.modelTierName}"
-                            is ModelState.Downloading -> "⏳ Téléchargement modèle : ${s.progressPercent}% (${s.downloadedMb}/${s.totalMb} Mo)"
-                            is ModelState.LoadingMmap -> "⚡ Initialisation mmap..."
-                            is ModelState.NotDownloaded -> "○ Moteur local KB actif (Gemma non installé)"
+                            is ModelState.Ready -> "● Gemma On-Device actif (${s.modelTierName})"
+                            is ModelState.Downloading -> "⏳ Téléchargement : ${s.progressPercent}% (${s.downloadedMb}/${s.totalMb} Mo)"
+                            is ModelState.LoadingMmap -> "⚡ Chargement mmap..."
+                            is ModelState.NotDownloaded -> "○ Moteur local KB actif"
                             is ModelState.Error -> "⚠️ Erreur: ${s.message}"
                             is ModelState.Checking -> "Vérification..."
                         }
-                        Text(statusText, color = if (modelState is ModelState.Ready) Color(0xFF10B981) else Color(0xFF38BDF8), fontSize = 12.sp)
+                        Text(statusText, color = if (modelState is ModelState.Ready) Color(0xFF10B981) else Color(0xFF38BDF8), fontSize = 11.sp)
                     }
                     Button(
                         onClick = onOpenOrganicMaps,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F2D3D))
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F2D3D)),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                     ) {
-                        Text("Carte (om://)", color = Color(0xFF38BDF8), fontSize = 12.sp)
+                        Text("Carte (om://)", color = Color(0xFF38BDF8), fontSize = 11.sp)
                     }
                 }
 
                 // Bandeau d'action de téléchargement automatique si pas encore téléchargé
                 if (modelState is ModelState.NotDownloaded) {
                     val notDownloaded = modelState as ModelState.NotDownloaded
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Button(
                         onClick = {
                             coroutineScope.launch {
@@ -153,13 +163,14 @@ fun SurvIAMainScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
                         shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 6.dp)
                     ) {
-                        Text("Installer ${notDownloaded.modelTierName} (~${notDownloaded.requiredMb} Mo)", color = Color.White, fontSize = 12.sp)
+                        Text("Installer modèle local (${notDownloaded.modelTierName} ~${notDownloaded.requiredMb} Mo)", color = Color.White, fontSize = 11.sp)
                     }
                 } else if (modelState is ModelState.Downloading) {
                     val downloading = modelState as ModelState.Downloading
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     LinearProgressIndicator(
                         progress = { downloading.progressPercent / 100f },
                         modifier = Modifier.fillMaxWidth(),
@@ -180,7 +191,7 @@ fun SurvIAMainScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextField(
@@ -223,41 +234,31 @@ fun SurvIAMainScreen(
 
                                     val gpsContext = if (isGeoQuery) {
                                         val gpsResult = onExecuteTool("get_gps_and_map", """{"action":"search_poi"}""")
-                                        "\n### COORDONNÉES GPS & POINTS VITAUX (HORS-LIGNE) :\n${gpsResult.outputJson}\n"
+                                        "\nPoints d'eau ou refuges proches :\n${gpsResult.outputJson}\n"
                                     } else ""
 
-                                    // ÉTAPE 2 : MÉMOIRE CONVERSATIONNELLE (Historique des 6 derniers échanges)
-                                    val recentHistory = messages.filter { !it.isThinking }.takeLast(6).joinToString("\n") { msg ->
-                                        if (msg.isUser) "Utilisateur: ${msg.text}" else "SurvIA: ${msg.text}"
-                                    }
-
-                                    // ÉTAPE 3 : GÉNÉRATION VIA GEMMA ON-DEVICE (ou Fallback KB si non téléchargé)
+                                    // ÉTAPE 2 : GÉNÉRATION VIA GEMMA ON-DEVICE (Template Officiel Gemma <start_of_turn>)
                                     if (modelManager.isReady() && !isFatal) {
                                         try {
-                                            val strictGemmaPrompt = """
-Tu es SurvIA, un Agent IA de Survie et Secourisme 100% Hors-Ligne propulsé par Gemma on-device.
-Tu es calme, méthodique, direct et ultra-protecteur.
-
-### PROTOCOLES CERTIFIÉS DE LA BASE LOCALE (SOURCE DE VÉRITÉ NON-ALTÉRABLE) :
+                                            val strictGemmaPrompt = """<start_of_turn>user
+Tu es SurvIA, un expert de secourisme d'urgence et de survie hors-ligne.
+Consignes obligatoires :
+1. Réponds de façon concise, calme et pratique en français.
+2. Applique DIRECTEMENT les protocoles de terrain vérifiés ci-dessous sans inventer :
 ${kbResult.outputJson}
 $gpsContext
-### DIRECTIVES ANTI-HALLUCINATION ABSOLUES :
-1. Fonde tes recommandations EXCLUSIVEMENT sur les protocoles certifiés ci-dessus. N'invente aucun geste médical.
-2. Si un point d'eau ou refuge GPS est mentionné, guide précisément l'utilisateur avec son azimut et distance.
-3. Sois concis et utilise des puces claires pour les gestes vitaux à réaliser immédiatement.
-
-### HISTORIQUE DU DIALOGUE :
-$recentHistory
-
-### NOUVELLE QUESTION DE L'UTILISATEUR :
-$userQ
-
-Réponse de SurvIA :
+Question de l'utilisateur : $userQ<end_of_turn>
+<start_of_turn>model
 """.trimIndent()
-                                            finalResponse = modelManager.generateResponse(strictGemmaPrompt)
+                                            val rawLlm = modelManager.generateResponse(strictGemmaPrompt)
+                                            // Si le LLM donne une réponse trop courte ou absurde, fallback propre sur la KB
+                                            finalResponse = if (rawLlm.length > 20 && !rawLlm.contains("afk") && !rawLlm.contains("combat")) {
+                                                rawLlm.replace("<start_of_turn>", "").replace("<end_of_turn>", "").replace("model", "").trim()
+                                            } else {
+                                                kbResult.outputJson
+                                            }
                                         } catch (e: Exception) {
-                                            // Fallback vers les faits bruts de la base en cas d'exception
-                                            finalResponse = kbResult.outputJson + if (gpsContext.isNotBlank()) "\n\n$gpsContext" else ""
+                                            finalResponse = kbResult.outputJson
                                         }
                                     } else {
                                         // Mode Direct / Garde-Fou Vital : Restitution directe des protocoles certifiés
@@ -283,11 +284,12 @@ Réponse de SurvIA :
         }
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFF090D11))
                 .padding(padding)
-                .padding(12.dp),
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(messages) { msg ->

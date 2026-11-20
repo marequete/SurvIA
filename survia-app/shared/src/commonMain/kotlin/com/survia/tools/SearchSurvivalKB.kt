@@ -36,7 +36,7 @@ class SearchSurvivalKB {
         }
 
         // ── TRIAGE MÉDICAL D'URGENCE : Protocole MARCH (MedGemma-FA) ──────────
-        if (q.contains("saignement") || q.contains("blessure") || q.contains("hémorragie") ||
+        if (q.contains("saignement") || q.contains("hémorragie") || q.contains("garrot") ||
             q.contains("triage") || q.contains("brûlure") || q.contains("fracture") ||
             q.contains("inconscient") || q.contains("urgence médicale") || q.contains("secours")
         ) {
@@ -66,6 +66,39 @@ class SearchSurvivalKB {
                         "⛔ INTERDICTIONS VITALES :",
                         "  • NE JAMAIS retirer un objet fiché profondément dans le corps (stabiliser l'objet avec des pansements autour).",
                         "  • NE PAS donner à boire à une victime inconsciente ou en état de choc."
+                    )
+                )
+            )
+        }
+
+        // ── COUPURES, PLAIES, DÉSINFECTION & TÉTANOS (Where There Is No Doctor / FirstAid) ──
+        if (q.contains("coup") || q.contains("plaie") || q.contains("blessure") ||
+            q.contains("désinfect") || q.contains("rouille") || q.contains("ferraille") ||
+            q.contains("antiseptique") || q.contains("infection") || q.contains("tétanos") || q.contains("nettoyer")
+        ) {
+            return ToolExecutionResult(
+                toolName = "search_survival_kb",
+                outputJson = buildNaturalResponse(
+                    "🩹 Soin des Plaies, Coupures & Désinfection de Fortune (Where There Is No Doctor)",
+                    listOf(
+                        "1. NETTOYAGE MÉCANIQUE IMMÉDIAT (Le geste le plus important) :",
+                        "   • L'irrigation abondante élimine 90% des débris et bactéries.",
+                        "   • Rincer la plaie sous un filet continu d'eau potable ou d'eau bouillie refroidie pendant au moins 5 minutes.",
+                        "   • Si disponible : laver le contour de la plaie avec de l'eau et du savon ordinaire (ne pas frotter vigoureusement l'intérieur de la plaie).",
+                        "",
+                        "2. DÉSINFECTION SANS PRODUITS PHARMACEUTIQUES :",
+                        "   • Miel pur non pasteurisé : puissant antibactérien naturel (effet osmotique et peroxyde naturel). Appliquer une fine couche sur la plaie propre.",
+                        "   • Eau salée bouillie refroidie (sérum physiologique improvisé) : 1 cuillère à café rase de sel par litre d'eau bouillie.",
+                        "   • ⛔ INTERDIT FORMEL : Ne JAMAIS verser d'alcool à brûler, d'eau de Javel, d'essence ou d'urine (détruit les tissus sains et aggrave mortellement l'infection).",
+                        "",
+                        "3. FERMETURE ET PANSEMENT :",
+                        "   • Laisser saigner quelques secondes au début pour évacuer les impuretés.",
+                        "   • Rapprocher les berges avec un tissu propre ou des bandelettes adhésives improvisées.",
+                        "   • Couvrir d'un pansement sec et propre. Changer dès qu'il est humide.",
+                        "",
+                        "⚠️ RISQUE TÉTANOS (Ferraille rouillée, épines, terre) :",
+                        "   • La bactérie du tétanos adore les plaies profondes peu oxygénées.",
+                        "   • Si le vaccin antitétanique date de plus de 10 ans (ou > 5 ans pour plaie souillée) : consulter impérativement un médecin ou poste de secours pour une injection de rappel + sérum."
                     )
                 )
             )
