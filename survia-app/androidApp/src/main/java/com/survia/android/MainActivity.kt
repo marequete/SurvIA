@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.survia.android.service.GemmaForegroundService
+import com.survia.android.ai.GemmaModelManager
+import com.survia.android.ai.ModelState
 import com.survia.tools.SearchSurvivalKB
 import com.survia.tools.GetGpsAndMap
 import com.survia.tools.AnalyzeCameraFrame
@@ -41,14 +43,17 @@ class MainActivity : ComponentActivity() {
     private val gpsTool = GetGpsAndMap { GeoCoords(45.1885, 5.7245, 1410.0) }
     private val cameraTool = AnalyzeCameraFrame()
     private val router = SurvivalToolRouter(searchKb, gpsTool, cameraTool)
+    private lateinit var modelManager: GemmaModelManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         GemmaForegroundService.startSentinel(this)
+        modelManager = GemmaModelManager(applicationContext)
 
         setContent {
             SurvIADarkTheme {
                 SurvIAMainScreen(
+                    modelManager = modelManager,
                     onOpenOrganicMaps = {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("om://map?ll=45.1885,5.7245&n=Point_Survie"))
                         intent.setPackage("app.organicmaps")
@@ -65,6 +70,11 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        modelManager.close()
     }
 }
 
@@ -84,13 +94,15 @@ fun SurvIADarkTheme(content: @Composable () -> Unit) {
 
 @Composable
 fun SurvIAMainScreen(
+    modelManager: GemmaModelManager,
     onOpenOrganicMaps: () -> Unit,
     onExecuteTool: suspend (String, String) -> com.survia.ai.ToolExecutionResult
 ) {
     var inputText by remember { mutableStateOf("") }
+    val modelState by modelManager.state.collectAsState()
     val messages = remember {
         mutableStateListOf(
-            ChatMessage(false, "SurvIA initialisé avec succès en mode 100% hors-ligne (Gemma 4 E4B IT via mmap). Les 3 outils natifs (Base de connaissances, GPS/Cartes, Vision) sont actifs.")
+            ChatMessage(false, "SurvIA initialisé. Mode 100% hors-ligne actif. Outils de survie (Base de connaissances, GPS/Cartes, Vision) prêts.")
         )
     }
     val coroutineScope = rememberCoroutineScope()
@@ -110,7 +122,15 @@ fun SurvIAMainScreen(
                 ) {
                     Column {
                         Text("SURVIA • AGENT HORS-LIGNE", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 16.sp)
-                        Text("● 0% Réseau • Gemma 4 E4B (INT4 mmap)", color = Color(0xFF10B981), fontSize = 12.sp)
+                        val statusText = when (val s = modelState) {
+                            is ModelState.Ready -> "● Modèle On-Device : ${s.modelTierName}"
+                            is ModelState.Downloading -> "⏳ Téléchargement modèle : ${s.progressPercent}% (${s.downloadedMb}/${s.totalMb} Mo)"
+                            is ModelState.LoadingMmap -> "⚡ Initialisation mmap..."
+                            is ModelState.NotDownloaded -> "○ Moteur local KB actif (Gemma non installé)"
+                            is ModelState.Error -> "⚠️ Erreur: ${s.message}"
+                            is ModelState.Checking -> "Vérification..."
+                        }
+                        Text(statusText, color = if (modelState is ModelState.Ready) Color(0xFF10B981) else Color(0xFF38BDF8), fontSize = 12.sp)
                     }
                     Button(
                         onClick = onOpenOrganicMaps,
@@ -118,6 +138,33 @@ fun SurvIAMainScreen(
                     ) {
                         Text("Carte (om://)", color = Color(0xFF38BDF8), fontSize = 12.sp)
                     }
+                }
+
+                // Bandeau d'action de téléchargement automatique si pas encore téléchargé
+                if (modelState is ModelState.NotDownloaded) {
+                    val notDownloaded = modelState as ModelState.NotDownloaded
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                modelManager.startDownload()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Installer ${notDownloaded.modelTierName} (~${notDownloaded.requiredMb} Mo)", color = Color.White, fontSize = 12.sp)
+                    }
+                } else if (modelState is ModelState.Downloading) {
+                    val downloading = modelState as ModelState.Downloading
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { downloading.progressPercent / 100f },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color(0xFF10B981),
+                        trackColor = Color(0xFF1F2D3D)
+                    )
                 }
             }
         },
@@ -149,23 +196,42 @@ fun SurvIAMainScreen(
                                 messages.add(ChatMessage(true, userQ))
                                 inputText = ""
                                 coroutineScope.launch {
-                                    // Affiche l'indicateur "en cours"
                                     val thinkingIdx = messages.size
                                     messages.add(ChatMessage(false, "⏳ Analyse en cours...", isThinking = true))
 
-                                    // Routage intelligent selon mots-clés
-                                    val qLow = userQ.lowercase()
-                                    val toolToCall = when {
-                                        qLow.contains("gps") || qLow.contains("coordonnées") ||
-                                        qLow.contains("où") || qLow.contains("carte") ||
-                                        qLow.contains("position") -> "get_gps_and_map"
-                                        else -> "search_survival_kb"
-                                    }
-                                    val res = onExecuteTool(toolToCall, """{"query":"$userQ"}""")
+                                    val finalResponse: String
+                                    var isFatal = false
 
-                                    // Remplace l'indicateur par la réponse réelle
-                                    messages.removeAt(thinkingIdx)
-                                    messages.add(ChatMessage(false, res.outputJson, isWarning = res.isFatalGuardrailTriggered))
+                                    // Si le modèle on-device Gemma est prêt, l'utiliser en priorité
+                                    if (modelManager.isReady()) {
+                                        try {
+                                            val systemPrompt = "Tu es SurvIA, un expert de survie hors-ligne. Réponds de façon concise, calme et vitale à la question : $userQ"
+                                            finalResponse = modelManager.generateResponse(systemPrompt)
+                                        } catch (e: Exception) {
+                                            // Fallback vers le moteur KB si exception
+                                            val res = onExecuteTool("search_survival_kb", """{"query":"$userQ"}""")
+                                            finalResponse = res.outputJson
+                                            isFatal = res.isFatalGuardrailTriggered
+                                        }
+                                    } else {
+                                        // Mode Fallback instantané : moteur de règles & base de connaissances
+                                        val qLow = userQ.lowercase()
+                                        val toolToCall = when {
+                                            qLow.contains("gps") || qLow.contains("coordonnées") ||
+                                            qLow.contains("où") || qLow.contains("carte") ||
+                                            qLow.contains("position") -> "get_gps_and_map"
+                                            else -> "search_survival_kb"
+                                        }
+                                        val res = onExecuteTool(toolToCall, """{"query":"$userQ"}""")
+                                        finalResponse = res.outputJson
+                                        isFatal = res.isFatalGuardrailTriggered
+                                    }
+
+                                    // Remplacement de l'indicateur d'analyse par la réponse
+                                    if (thinkingIdx < messages.size) {
+                                        messages.removeAt(thinkingIdx)
+                                    }
+                                    messages.add(ChatMessage(false, finalResponse, isWarning = isFatal))
                                 }
                             }
                         },
