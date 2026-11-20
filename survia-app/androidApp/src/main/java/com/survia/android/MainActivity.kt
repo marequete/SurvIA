@@ -199,7 +199,7 @@ fun SurvIAMainScreen(
                                     val thinkingIdx = messages.size
                                     messages.add(ChatMessage(false, "⏳ Analyse en cours...", isThinking = true))
 
-                                    val finalResponse: String
+                                    var finalResponse = ""
                                     var isFatal = false
 
                                     // Si le modèle on-device Gemma est prêt, l'utiliser en priorité
