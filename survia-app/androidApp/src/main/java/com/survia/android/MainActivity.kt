@@ -181,7 +181,17 @@ fun SurvIAMainScreen(
     }
 
     Scaffold(
-        topBar = { SurvIATopBar(modelState, onOpenOrganicMaps) },
+        topBar = {
+            SurvIATopBar(
+                modelState = modelState,
+                onOpenOrganicMaps = onOpenOrganicMaps,
+                onStartDownloadModel = {
+                    coroutineScope.launch {
+                        modelManager.startDownload()
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddPoiSheet = true },
@@ -283,7 +293,11 @@ fun SurvIAMainScreen(
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
 @Composable
-fun SurvIATopBar(modelState: ModelState, onOpenOrganicMaps: () -> Unit) {
+fun SurvIATopBar(
+    modelState: ModelState,
+    onOpenOrganicMaps: () -> Unit,
+    onStartDownloadModel: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -319,10 +333,33 @@ fun SurvIATopBar(modelState: ModelState, onOpenOrganicMaps: () -> Unit) {
             }
         }
         when (modelState) {
-            is ModelState.NotDownloaded -> { /* Pas de bandeau pour le moment */ }
+            is ModelState.NotDownloaded -> {
+                val notDownloaded = modelState as ModelState.NotDownloaded
+                Spacer(modifier = Modifier.height(6.dp))
+                Button(
+                    onClick = onStartDownloadModel,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(vertical = 6.dp)
+                ) {
+                    Text(
+                        "📥 Installer modèle local (${notDownloaded.modelTierName} ~${notDownloaded.requiredMb} Mo)",
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
             is ModelState.Downloading -> {
                 val d = modelState as ModelState.Downloading
                 Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    "Téléchargement en cours : ${d.progressPercent}% (${d.downloadedMb}/${d.totalMb} Mo)",
+                    color = Color(0xFF38BDF8),
+                    fontSize = 10.sp
+                )
+                Spacer(modifier = Modifier.height(3.dp))
                 LinearProgressIndicator(
                     progress = { d.progressPercent / 100f },
                     modifier = Modifier.fillMaxWidth(),
