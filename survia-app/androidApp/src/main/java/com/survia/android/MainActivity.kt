@@ -86,6 +86,7 @@ class MainActivity : ComponentActivity() {
                 SurvIAMainScreen(
                     modelManager = modelManager,
                     poiStore = poiStore,
+                    getCurrentCoords = { lastKnownCoords },
                     onOpenOrganicMaps = { openOrganicMaps(lastKnownCoords) },
                     onExecuteTool = { toolName, argsJson -> router.execute(toolName, argsJson) },
                     onAddPoi = { poi -> poiStore.addPoi(poi) }
@@ -160,6 +161,7 @@ fun SurvIADarkTheme(content: @Composable () -> Unit) {
 fun SurvIAMainScreen(
     modelManager: GemmaModelManager,
     poiStore: UserPoiStore,
+    getCurrentCoords: () -> GeoCoords,
     onOpenOrganicMaps: () -> Unit,
     onExecuteTool: suspend (String, String) -> com.survia.ai.ToolExecutionResult,
     onAddPoi: (UserPoi) -> Unit
@@ -281,6 +283,7 @@ fun SurvIAMainScreen(
     // ── Bottom Sheet : Ajouter un POI ─────────────────────────────────────────
     if (showAddPoiSheet) {
         AddPoiBottomSheet(
+            currentCoords = getCurrentCoords(),
             onDismiss = { showAddPoiSheet = false },
             onConfirm = { poi ->
                 onAddPoi(poi)
@@ -524,6 +527,7 @@ fun ChatBubble(msg: ChatMessage) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPoiBottomSheet(
+    currentCoords: GeoCoords,
     onDismiss: () -> Unit,
     onConfirm: (UserPoi) -> Unit
 ) {
@@ -626,8 +630,8 @@ fun AddPoiBottomSheet(
                         if (label.isNotBlank()) {
                             onConfirm(UserPoi(
                                 id          = UUID.randomUUID().toString(),
-                                lat         = 45.1885, // TODO: remplacer par lastKnownCoords injecté
-                                lon         = 5.7245,
+                                lat         = currentCoords.lat,
+                                lon         = currentCoords.lon,
                                 type        = selectedType,
                                 label       = label.trim(),
                                 comment     = comment.trim().ifBlank { null },

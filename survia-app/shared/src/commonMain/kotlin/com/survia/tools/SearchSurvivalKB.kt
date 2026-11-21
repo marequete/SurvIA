@@ -3,15 +3,11 @@ package com.survia.tools
 import com.survia.ai.ToolExecutionResult
 
 /**
- * Moteur sémantique d'analyse du langage naturel et d'extraction ciblée
- * depuis 7 référentiels d'urgence et de survie certifiés hors-ligne :
- *  1. Where There Is No Doctor (Soins de terrain, plaies, désinfection naturelle, réhydratation)
- *  2. US Army FM 21-76 Survival Manual (Eau, abri thermique, feu, piégeage)
- *  3. oye-ahmad/Smart-FirstAid & FirstAid (Urgences vitales, RCP, Heimlich, AVC FAST, PLS)
- *  4. bdkoeh/survivalRAG & FM 4-25.11 (Traumatologie tactique, garrot tourniquet, blast, crush)
- *  5. kiwix/WikiMed (Pharmacie d'urgence, morsures de serpents, risque tétanos, OMS)
- *  6. Soonz-38/kit-survie (Garde-fou vital botanique et champignons toxiques)
- *  7. ligi/SurvivalManual (Psychologie S.T.O.P., franchissement, nœuds de secours)
+ * Moteur sémantique d'urgence SurvIA :
+ * - Analyse le besoin en langage naturel
+ * - Délivre une réponse ultra-pédagogique, rassurante et opérationnelle
+ * - ZERO HALLUCINATION : basé exclusivement sur 7 référentiels médicaux et de survie certifiés
+ * - Format : 1. Ce qu'il faut faire tout de suite / 2. Ce qu'il ne faut SURTOUT PAS faire / 3. Vigilance vitale
  */
 class SearchSurvivalKB {
 
@@ -26,339 +22,241 @@ class SearchSurvivalKB {
         if (isEdibility) {
             return ToolExecutionResult(
                 toolName = "search_survival_kb",
-                outputJson = formatDiagnostic(
+                outputJson = formatGuide(
                     userPrompt = userPrompt,
-                    intent = "Identification Botanique & Mycologique",
-                    dbSource = "Soonz-38/kit-survie & Where There Is No Doctor",
-                    isWarning = true,
-                    title = "⚠️ DANGER VITAL — Identification Botanique & Champignons Sauvages",
-                    steps = listOf(
-                        "GARDE-FOU STRICT NON CONTOURNABLE :",
-                        "L'agent SurvIA a l'interdiction formelle de certifier la comestibilité d'une plante ou d'un champignon sauvage sur simple photo ou description textuelle.",
-                        "",
-                        "🍄 Sosies Mortels Documentés :",
-                        "  • Amanite phalloïde : sosie de l'Agaric des bois et de la Lépiote. Amatoxine détruisant foie et reins en 6 à 24h. Mortelle même cuite.",
-                        "  • Grande Ciguë : sosie mortel de la Carotte sauvage. Paralysie respiratoire foudroyante.",
-                        "  • Digitale pourpre & Belladone : confusion avec la Consoude ou la Myrtille. Arrêt cardiaque direct.",
-                        "",
-                        "🛡️ RÈGLE D'OR : En situation de survie, le jeûne de 3 semaines est infiniment moins dangereux que l'ingestion d'un végétal douteux.",
-                        "En cas d'ingestion suspecte : Ne fais pas vomir, conserve l'échantillon intact, contacte le 15 / 112 ou le Centre Antipoison immédiatement."
-                    )
+                    badge = "⚠️ DANGER MORTEL IMMÉDIAT",
+                    title = "Arrêtez tout : Ne mangez JAMAIS ce végétal ou champignon !",
+                    immediateActions = listOf(
+                        "Ne portez rien à la bouche, même cuit ou bouilli.",
+                        "En survie, le corps humain peut jeûner 3 semaines entières sans manger, mais une seule bouchée d'amanite phalloïde détruit votre foie et vos reins en quelques heures.",
+                        "Conservez l'échantillon intact dans un tissu sec si quelqu'un en a déjà avalé."
+                    ),
+                    forbiddenActions = listOf(
+                        "Ne jamais faire confiance à une photo ou une description approximative.",
+                        "Ne jamais faire vomir la victime sans avis médical (risque de brûlure et étouffement)."
+                    ),
+                    vitalAlert = "Sosies mortels documentés : L'Amanite phalloïde ressemble à l'Agaric des bois. La Grande Ciguë ressemble à la Carotte sauvage. En cas d'ingestion : appelez d'urgence le 15, le 112 ou un centre antipoison.",
+                    source = "Soonz-38/kit-survie & Where There Is No Doctor"
                 ),
                 isFatalGuardrailTriggered = true
             )
         }
 
-        // ── 2. GESTION DES REMARQUES CONVERSATIONNELLES & INCOMPRÉHENSIONS ────
-        if (containsAny(qClean, listOf("repete", "meme chose", "raconte", "n importe quoi", "comprends pas", "comprend rien", "aide", "comment ca marche", "qui es tu"))) {
+        // ── 2. DOMAINE : HÉMORRAGIE MASSIVE & GARROT TOURNIQUET ──────────────
+        if (containsAny(qClean, listOf("hemorragie", "garrot", "tourniquet", "saign", "artere", "amputation", "jet"))) {
             return ToolExecutionResult(
                 toolName = "search_survival_kb",
-                outputJson = formatDiagnostic(
+                outputJson = formatGuide(
                     userPrompt = userPrompt,
-                    intent = "Demande d'orientation et d'aide personnalisée",
-                    dbSource = "SurvIA — Système Autonome de Secours Hors-Ligne",
-                    isWarning = false,
-                    title = "🧭 SurvIA — Comment obtenir une réponse personnalisée ?",
-                    steps = listOf(
-                        "Je suis votre assistant d'urgence 100% autonome et hors-ligne.",
-                        "Chaque réponse s'appuie sur des référentiels médicaux certifiés (Where There Is No Doctor, US Army FM 21-76, WikiMed, Smart-FirstAid).",
-                        "",
-                        "Pour que j'adapte ma réponse exactement à votre situation sans répétition générale, posez votre question précise :",
-                        "  • 🩹 Plaie / Blessure : « Comment désinfecter avec du miel ? », « Quel est le délai du vaccin antitétanique ? »",
-                        "  • 💧 Eau : « Où trouver de l'eau ? », « Comment fabriquer un filtre au charbon ? », « Combien de gouttes de Javel par litre ? »",
-                        "  • 🫀 Urgence vitale : « Quelqu'un s'étouffe avec un aliment », « Victime inconsciente sans respiration »",
-                        "  • 📍 Géolocalisation : Posez une question sur l'eau ou les refuges pour faire apparaître le bouton de localisation directe sur la carte !"
-                    )
-                )
+                    badge = "🚨 URGENCE VITALE (3 MINUTES)",
+                    title = "Arrêt d'Urgence d'un Saignement Massif",
+                    immediateActions = listOf(
+                        "Appuyez de tout votre poids directement sur la plaie avec un tissu propre ou votre main sans jamais relâcher.",
+                        "Si le sang gicle en jet (artère touchée) sur un bras ou une jambe : Posez immédiatement un garrot 5 à 7 cm au-dessus de la plaie (entre le cœur et la blessure, jamais sur une articulation).",
+                        "Serrez la tige / garrot jusqu'à ce que le sang s'arrête complètement de couler.",
+                        "Notez impérativement l'heure exacte de pose au feutre sur le front ou sur le garrot (ex : T 14h30)."
+                    ),
+                    forbiddenActions = listOf(
+                        "Ne JAMAIS desserrer ou retirer un garrot vous-même une fois posé (seul un chirurgien peut le faire).",
+                        "Ne donnez JAMAIS à boire à une victime qui saigne abondamment (risque de fausse route et choc)."
+                    ),
+                    vitalAlert = "Couvrez immédiatement la victime avec une veste ou une couverture de survie : le corps se refroidit très vite en perdant du sang.",
+                    source = "Protocole MARCH tactique (survivalRAG & US Army FM 4-25.11)"
+                ),
+                isFatalGuardrailTriggered = true
             )
         }
 
-        // ── 3. DOMAINE : EAU POTABLE, FILTRATION & LOCALISATION DE POINTS D'EAU ──
-        if (containsAny(qClean, listOf("eau", "soif", "potable", "purif", "filtr", "boire", "ruisseau", "source", "riviere", "deshydrat", "javel", "charbon"))) {
-            // Sous-cas A : Recherche & Localisation de points d'eau
-            if (containsAny(qClean, listOf("ou", "trouver", "chercher", "source", "ruisseau", "point d eau", "proximite", "carte", "repere"))) {
+        // ── 3. DOMAINE : ARRÊT CARDIAQUE & ÉTOUFFEMENT ────────────────────────
+        if (containsAny(qClean, listOf("arret", "cardiaque", "rcp", "massage", "defibrillateur", "etouff", "heimlich", "inconscient"))) {
+            val isChoking = containsAny(qClean, listOf("etouff", "heimlich", "avale", "etouffement"))
+            if (isChoking) {
                 return ToolExecutionResult(
                     toolName = "search_survival_kb",
-                    outputJson = formatDiagnostic(
+                    outputJson = formatGuide(
                         userPrompt = userPrompt,
-                        intent = "Repérage & Localisation de Points d'Eau en Milieu Naturel",
-                        dbSource = "US Army FM 21-76 Survival Manual & Wilderness Guide",
-                        isWarning = false,
-                        title = "💧 Comment repérer de l'eau sur le terrain & Action Carte",
-                        steps = listOf(
-                            "1. INDICES VISUELS DE TERRAIN :",
-                            "   • Végétation dense et vert vif (saules, joncs, prêles, roseaux) : indique de l'eau à faible profondeur sous la surface.",
-                            "   • Vol des oiseaux au crépuscule ou à l'aube : ils convergent vers les points d'eau de surface.",
-                            "   • Talwegs et dépressions : toujours descendre vers le fond des vallons où l'eau ruisselle naturellement.",
-                            "",
-                            "2. COLLECTE D'EAU DE FORTUNE :",
-                            "   • Rosée matinale : enrouler un tissu propre autour des chevilles et marcher dans l'herbe haute avant le lever du soleil, puis essorer dans un récipient.",
-                            "   • Creuser un trou de 50 cm dans un lit de ruisseau asséché : l'eau souterraine percole souvent en 20 à 30 minutes.",
-                            "",
-                            "⚠️ RÈGLE DE SÉCURITÉ : Ne buvez jamais une eau de surface sans la purifier au préalable (bactéries, parasites Giardia).",
-                            "👉 Appuyez sur le bouton bleu ci-dessous pour afficher le point d'eau le plus proche sur votre carte hors-ligne !"
-                        )
+                        badge = "🚨 ÉTOUFFEMENT TOTAL",
+                        title = "La personne ne peut plus parler, tousser ni respirer",
+                        immediateActions = listOf(
+                            "Donnez 5 claques vigoureuses dans le haut du dos, entre les deux omoplates, avec le plat de la main.",
+                            "Si l'objet ne sort pas : placez-vous derrière la victime, fermez un poing sous son sternum au creux de l'estomac, et effectuez 5 tractions sèches vers l'arrière et vers le haut (Manœuvre de Heimlich).",
+                            "Alternez 5 claques dans le dos et 5 compressions abdominales jusqu'à expulsion."
+                        ),
+                        forbiddenActions = listOf(
+                            "Ne mettez jamais vos doigts à l'aveugle dans la gorge (vous risquez d'enfoncer l'objet plus profondément).",
+                            "Ne donnez rien à boire."
+                        ),
+                        vitalAlert = "Si la personne perd connaissance : allongez-la au sol et commencez immédiatement le massage cardiaque.",
+                        source = "Smart-FirstAid & Secourisme Civil"
+                    ),
+                    isFatalGuardrailTriggered = true
+                )
+            } else {
+                return ToolExecutionResult(
+                    toolName = "search_survival_kb",
+                    outputJson = formatGuide(
+                        userPrompt = userPrompt,
+                        badge = "🚨 ARRÊT CARDIAQUE",
+                        title = "La victime ne répond pas et ne respire plus",
+                        immediateActions = listOf(
+                            "Alertez immédiatement les secours (15 / 112) et réclamez un défibrillateur (DAE).",
+                            "Allongez la victime sur le dos, sur un sol dur.",
+                            "Massez sans arrêt : placez vos deux mains l'une sur l'autre au centre de la poitrine, bras bien tendus.",
+                            "Appuyez à un rythme rapide de 100 à 120 battements par minute (rythme de la musique 'Stayin Alive'), en enfonçant la poitrine de 5 à 6 cm."
+                        ),
+                        forbiddenActions = listOf(
+                            "Ne vous arrêtez jamais de masser avant l'arrivée des secours.",
+                            "Ne perdez pas de temps à faire du bouche-à-bouche si vous n'êtes pas formé : les compressions seules suffisent à sauver le cerveau."
+                        ),
+                        vitalAlert = "Si un défibrillateur (DAE) est disponible : allumez-le et suivez simplement ses instructions vocales, il s'occupe de tout.",
+                        source = "Smart-FirstAid & Croix-Rouge / WikiMed"
+                    ),
+                    isFatalGuardrailTriggered = true
+                )
+            }
+        }
+
+        // ── 4. DOMAINE : MORSURE DE SERPENT & ENVENIMATION ────────────────────
+        if (containsAny(qClean, listOf("morsure", "serpent", "vipere", "venin", "piqure", "guepe", "frelon"))) {
+            return ToolExecutionResult(
+                toolName = "search_survival_kb",
+                outputJson = formatGuide(
+                    userPrompt = userPrompt,
+                    badge = "⚠️ ENVENIMATION PAR MORSURE",
+                    title = "Que faire en cas de morsure de vipère ou serpent",
+                    immediateActions = listOf(
+                        "Allongez la victime et gardez-la parfaitement calme : bouger et courir accélère la diffusion du venin dans le sang.",
+                        "Retirez immédiatement bagues, montres et chaussures avant que la zone ne gonfle.",
+                        "Immobilisez le membre mordu à l'aide d'une branche ou d'un tissu, comme pour une fracture, en position de repos."
+                    ),
+                    forbiddenActions = listOf(
+                        "⛔ Ne JAMAIS inciser la plaie au couteau.",
+                        "⛔ Ne JAMAIS aspirer avec la bouche ni utiliser de pompe à venin (inefficace et dangereux).",
+                        "⛔ Ne JAMAIS poser de garrot serré (le venin concentré détruirait tous les tissus du membre)."
+                    ),
+                    vitalAlert = "Appelez le 15 / 112 ou rejoignez calmement un poste de secours : le repos strict est votre meilleure arme.",
+                    source = "kiwix/WikiMed & Where There Is No Doctor"
+                ),
+                isFatalGuardrailTriggered = true
+            )
+        }
+
+        // ── 5. DOMAINE : PLAIES, COUPURES, DÉSINFECTION NATURELLE & TÉTANOS ────
+        if (containsAny(qClean, listOf("coup", "plaie", "bless", "desinfect", "rouill", "ferraill", "clou", "tetanos", "antiseptique", "miel", "pansement", "vaccin"))) {
+            val isTetanusRisk = containsAny(qClean, listOf("rouill", "ferraill", "clou", "terre", "tetanos", "barbele"))
+            return ToolExecutionResult(
+                toolName = "search_survival_kb",
+                outputJson = formatGuide(
+                    userPrompt = userPrompt,
+                    badge = if (isTetanusRisk) "⚠️ ALERTE TÉTANOS & PLAIE SOUILLÉE" else "🩹 SOIN DES PLAIES",
+                    title = "Comment nettoyer et soigner une plaie sans antiseptique",
+                    immediateActions = listOf(
+                        "1. LE GESTE QUI ÉLIMINE 90% DES BACTÉRIES : Rincez la plaie sous un filet continu d'eau potable ou d'eau bouillie refroidie pendant 5 minutes entières. L'action mécanique de l'eau est plus efficace que n'importe quel produit.",
+                        "2. Savonnez délicatement la peau AUTOUR de la blessure avec de l'eau et du savon doux (ne frottez pas agressivement l'intérieur de la plaie).",
+                        "3. ANTISEPTIQUE NATUREL : Appliquez une fine couche de miel pur non pasteurisé. Grâce à son sucre et son acidité, le miel déshydrate les bactéries et empêche l'infection.",
+                        "4. Pansement improvisé : couvrez avec un tissu propre ou une compresse stérile sèche sans trop serrer."
+                    ),
+                    forbiddenActions = listOf(
+                        "⛔ Ne JAMAIS verser d'eau de Javel, d'alcool à brûler, d'essence ou d'urine : ces liquides détruisent les cellules vivantes et provoquent une surinfection grave.",
+                        "⛔ Ne refermez pas hermétiquement une plaie profonde causée par un clou : l'air empêche la bactérie du tétanos de se développer."
+                    ),
+                    vitalAlert = if (isTetanusRisk) "VIGILANCE TÉTANOS : Pour une coupure par ferraille rouillée ou terre, votre vaccin antitétanique doit dater de moins de 5 ans. Consultez un médecin sous 48h maximum pour faire un rappel." else "Surveillez la plaie : si elle devient rouge, chaude ou douloureuse dans les 24h, consultez rapidement.",
+                    source = "Where There Is No Doctor (Dr. David Werner) & WikiMed"
+                ),
+                isFatalGuardrailTriggered = isTetanusRisk
+            )
+        }
+
+        // ── 6. DOMAINE : EAU, PURIFICATION, FILTRE CHARBON & ORIENTATION ───────
+        if (containsAny(qClean, listOf("eau", "soif", "potable", "purif", "filtr", "boire", "source", "ruisseau", "charbon", "javel"))) {
+            val isFilter = containsAny(qClean, listOf("filtr", "charbon", "sable", "trouble", "boue"))
+            if (isFilter) {
+                return ToolExecutionResult(
+                    toolName = "search_survival_kb",
+                    outputJson = formatGuide(
+                        userPrompt = userPrompt,
+                        badge = "🏺 FABRICATION D'UN FILTRE À EAU",
+                        title = "Fabriquer un filtre mécanique charbon & sable",
+                        immediateActions = listOf(
+                            "Prenez une bouteille en plastique, coupez le fond et percez 3 petits trous dans le bouchon.",
+                            "Couche 1 (au fond) : un morceau de tissu propre ou une compresse pour retenir les particules fines.",
+                            "Couche 2 : 5 à 8 cm de charbon de bois éteint pilé en petits grains (il piège les polluants chimiques et les mauvaises odeurs).",
+                            "Couche 3 : 5 à 10 cm de sable fin propre (pour filtrer la terre et les impuretés).",
+                            "Couche 4 (en haut) : 5 cm de petits graviers (pour retenir les brindilles et feuilles).",
+                            "Faites d'abord couler 1 litre d'eau pour rincer la poussière noire avant d'utiliser le filtre."
+                        ),
+                        forbiddenActions = listOf(
+                            "⛔ ATTENTION VITALE : Le filtre clarifie l'eau mais NE TUE PAS les virus ni les bactéries. L'eau filtrée doit impérativement être bouillie ensuite."
+                        ),
+                        vitalAlert = "Portez toujours l'eau claire à ébullition franche pendant 1 minute complète avant de la boire.",
+                        source = "US Army FM 21-76 & kit-survie Soonz-38"
+                    )
+                )
+            } else {
+                return ToolExecutionResult(
+                    toolName = "search_survival_kb",
+                    outputJson = formatGuide(
+                        userPrompt = userPrompt,
+                        badge = "💧 EAU POTABLE D'URGENCE",
+                        title = "Comment rendre une eau de nature potable",
+                        immediateActions = listOf(
+                            "MÉTHODE ROYALE (Ébullition) : Faites bouillir l'eau à gros bouillons pendant 1 minute complète (ajoutez 1 minute supplémentaire par tranche de 1000m d'altitude). Cela détruit 100% des bactéries, virus et parasites.",
+                            "DÉSINFECTION CHIMIQUE DE FORTUNE : Si vous avez de l'eau de Javel classique sans parfum, mettez 2 gouttes par litre d'eau claire (4 gouttes si l'eau est trouble ou très froide). Attendez 30 minutes avant de boire.",
+                            "ORIENTATION : Descendez toujours vers le fond des vallons et dépressions (talwegs), l'eau s'y écoule naturellement."
+                        ),
+                        forbiddenActions = listOf(
+                            "⛔ Ne buvez JAMAIS d'eau de mer (elle accélère mortellement la déshydratation).",
+                            "⛔ Ne buvez JAMAIS d'eau stagnante agricole chargée en pesticides."
+                        ),
+                        vitalAlert = "Règle des 3 : Le corps humain ne peut pas survivre plus de 3 jours sans boire. Cliquez sur le bouton sous ce message pour trouver la source d'eau la plus proche.",
+                        source = "US Army FM 21-76 Survival Manual"
                     )
                 )
             }
+        }
 
-            // Sous-cas B : Fabrication d'un Filtre à eau mécanique de fortune
-            if (containsAny(qClean, listOf("filtr", "charbon", "sable", "boue", "trouble", "sediment", "fabriquer"))) {
-                return ToolExecutionResult(
-                    toolName = "search_survival_kb",
-                    outputJson = formatDiagnostic(
-                        userPrompt = userPrompt,
-                        intent = "Fabrication d'un Filtre Multicouche de Fortune",
-                        dbSource = "kit-survie Soonz-38 & US Army FM 21-76",
-                        isWarning = false,
-                        title = "🏺 Filtre à Eau Improvisé (Charbon & Sable)",
-                        steps = listOf(
-                            "1. STRUCTURE DU FILTRE (Bouteille plastique ou cône d'écorce) :",
-                            "   • Couper le fond d'une bouteille et percer 3 petits trous dans le bouchon vissé (ou obturer avec un tissu propre).",
-                            "",
-                            "2. LES 4 COUCHES INDISPENSABLES (de bas en haut) :",
-                            "   • Couche 1 (Fond) : Compresse ou tissu fin propre (retient les matières fines).",
-                            "   • Couche 2 (Adsorption) : 5 à 8 cm de charbon de bois éteint pilé en fins morceaux (le charbon actif adsorbe odeurs, goûts et toxines chimiques).",
-                            "   • Couche 3 (Filtration fine) : 5 à 10 cm de sable fin lavé (retient les micro-particules en suspension).",
-                            "   • Couche 4 (Filtration grossière) : 5 cm de petits graviers (retient feuilles, brindilles et débris).",
-                            "",
-                            "3. DILUTION ET RÉSULTAT :",
-                            "   • Faire passer 2 litres d'eau d'abord pour rincer la poussière noire de charbon.",
-                            "   • ⛔ RÈGLE VITALE : La filtration rend l'eau claire mais NE TUE PAS les virus ni les bactéries ! Portez impérativement l'eau filtrée à ébullition pendant 1 minute avant consommation."
-                        )
-                    )
-                )
-            }
-
-            // Sous-cas C : Ébullition & Potabilisation chimique
+        // ── 7. DOMAINE : ABRI THERMIQUE & HYPOTHERMIE ─────────────────────────
+        if (containsAny(qClean, listOf("refuge", "abri", "froid", "hypothermie", "bivouac", "gel", "vent"))) {
             return ToolExecutionResult(
                 toolName = "search_survival_kb",
-                outputJson = formatDiagnostic(
+                outputJson = formatGuide(
                     userPrompt = userPrompt,
-                    intent = "Désinfection & Potabilisation d'Urgence de l'Eau",
-                    dbSource = "US Army FM 21-76 & Where There Is No Doctor",
-                    isWarning = false,
-                    title = "💧 Potabilisation d'Urgence (Ébullition & Dosage Chimique)",
-                    steps = listOf(
-                        "1. ÉBULLITION FRANCHE (Méthode de référence absolue) :",
-                        "   • Filtrer d'abord les sédiments à travers un tissu.",
-                        "   • Porter à gros bouillons pendant 1 minute complète (+ 1 minute supplémentaire par tranche de 1000m d'altitude).",
-                        "   • Élimine 100% des agents pathogènes (bactéries, virus, kystes de Giardia).",
-                        "",
-                        "2. DÉSINFECTION CHIMIQUE D'URGENCE :",
-                        "   • Eau de Javel classique non parfumée : 2 gouttes par litre d'eau claire (4 gouttes si eau froide ou légèrement trouble). Bien mélanger et attendre 30 minutes de contact minimum.",
-                        "   • Teinture d'iode 2% : 5 gouttes par litre d'eau claire (attente 30 minutes).",
-                        "",
-                        "⛔ INTERDITS ABSOLUS : Ne jamais boire d'eau de mer (accélère mortellement la déshydratation par choc osmotique) ni d'urine."
-                    )
+                    badge = "🏕️ PROTECTION CONTRE LE FROID",
+                    title = "Construire un abri et survivre à l'hypothermie",
+                    immediateActions = listOf(
+                        "1. ISOLEZ-VOUS DU SOL (Priorité absolue) : La terre froide aspire votre chaleur corporelle 3 fois plus vite que l'air. Fabriquez un matelas de 30 cm de feuilles sèches, fougères ou branches de sapin.",
+                        "2. COUVERTURE DE SURVIE : Placez la face dorée vers l'extérieur et la face argentée contre votre corps. Elle renvoie 90% de votre chaleur infrarouge.",
+                        "3. Coupez le vent : installez votre abri à l'abri des courants d'air (derrière un rocher, un talus ou un mur de branches)."
+                    ),
+                    forbiddenActions = listOf(
+                        "Ne dormez JAMAIS directement à même le sol ou sur de la terre humide.",
+                        "Ne buvez pas d'alcool (l'alcool dilate les vaisseaux et accélère mortellement l'hypothermie interne)."
+                    ),
+                    vitalAlert = "Règle des 3 : Par grand froid ou sous la pluie, l'hypothermie peut tuer en 3 heures seulement. Trouvez un abri avant la nuit tombée.",
+                    source = "US Army FM 21-76 Survival Manual"
                 )
             )
         }
 
-        // ── 4. DOMAINE : PLAIES, COUPURES, DÉSINFECTION & TÉTANOS ─────────────
-        if (containsAny(qClean, listOf("coup", "plaie", "bless", "desinfect", "rouill", "ferraill", "clou", "tetanos", "antiseptique", "miel", "pansement", "saign", "vaccin"))) {
-            // Sous-cas A : Focus spécifique sur le Tétanos et ferraille rouillée
-            if (containsAny(qClean, listOf("tetanos", "rouill", "ferraill", "clou", "vaccin", "rappel", "terre", "delai"))) {
-                return ToolExecutionResult(
-                    toolName = "search_survival_kb",
-                    outputJson = formatDiagnostic(
-                        userPrompt = userPrompt,
-                        intent = "Risque Infectieux Majeur — Prévention du Tétanos (Clostridium tetani)",
-                        dbSource = "WikiMed & Where There Is No Doctor (Dr. David Werner)",
-                        isWarning = true,
-                        title = "⚠️ Alerte Tétanos sur Coupure par Ferraille / Métal Rouillé",
-                        steps = listOf(
-                            "1. POURQUOI LA FERRAILLE ROUILLÉE EST DANGEREUSE :",
-                            "   • La bactérie Clostridium tetani vit dans la terre et sur les objets rouillés sous forme de spores hautement résistantes.",
-                            "   • Elle prolifère exclusivement dans les plaies profondes, étroites et privées d'oxygène (anaérobies).",
-                            "",
-                            "2. PREMIERS SOINS IMMÉDIATS OBLIGATOIRES :",
-                            "   • Laver et irriguer abondamment à l'eau courante et au savon ordinaire pendant au moins 5 minutes.",
-                            "   • Ne fermez pas hermétiquement une plaie punctiforme profonde : l'oxygène ambiant empêche la prolifération de la toxine tétanique.",
-                            "",
-                            "3. DÉLAI ET RAPPEL DU VACCIN ANTITÉTANIQUE :",
-                            "   • Pour une plaie souillée (ferraille, terre, clou) : le rappel vaccinal est obligatoire si votre dernier vaccin date de PLUS DE 5 ANS.",
-                            "   • Pour une plaie propre superficielle : le rappel est valable 10 ans.",
-                            "   • DÉLAI D'ACTION : Consultez impérativement un poste médical ou un médecin dans les 48 heures maximum pour recevoir le rappel de vaccin + immunoglobulines antitétaniques."
-                        )
-                    )
-                )
-            }
-
-            // Sous-cas B : Désinfection sans produits antiseptiques
-            if (containsAny(qClean, listOf("sans produit", "naturel", "miel", "sel", "antiseptique", "maison", "sans rien"))) {
-                return ToolExecutionResult(
-                    toolName = "search_survival_kb",
-                    outputJson = formatDiagnostic(
-                        userPrompt = userPrompt,
-                        intent = "Désinfection Naturelle & Soins sans Médicaments",
-                        dbSource = "Where There Is No Doctor (Dr. David Werner) & FirstAid",
-                        isWarning = false,
-                        title = "🩹 Désinfection de Fortune sans Antiseptique Industriel",
-                        steps = listOf(
-                            "1. L'IRRIGATION À L'EAU : LE GESTE QUI ÉLIMINE 90% DES BACTÉRIES :",
-                            "   • Le geste le plus efficace au monde n'est pas un désinfectant, mais l'action mécanique de l'eau.",
-                            "   • Rincer la plaie sous un filet continu d'eau potable ou bouillie refroidie pendant 5 minutes complètes.",
-                            "   • Laver la peau AUTOUR de la plaie avec de l'eau savonneuse (ne pas savonner agressivement l'intérieur de la plaie).",
-                            "",
-                            "2. SUBSTANCES NATURELLES ANTISEPTIQUES VALIDÉES :",
-                            "   • Miel pur non pasteurisé : puissant antibactérien naturel grâce à son acidité, son effet osmotique (déshydrate les bactéries) et sa production naturelle de peroxyde d'hydrogène. Appliquer une fine couche sur la plaie propre.",
-                            "   • Eau salée bouillie refroidie : 1 cuillère à café rase de sel dans 1 litre d'eau bouillie (sérum physiologique d'urgence pour irriguer).",
-                            "",
-                            "3. ⛔ INTERDITS ABSOLUS (DANGER DE MORT CELLULAIRE) :",
-                            "   • Ne JAMAIS verser d'eau de Javel, d'alcool à brûler, d'essence ou d'urine : ces produits détruisent les cellules saines, augmentent la nécrose et décuplent le risque de surinfection grave."
-                        )
-                    )
-                )
-            }
-
-            // Sous-cas C : Protocole général complet des plaies
-            return ToolExecutionResult(
-                toolName = "search_survival_kb",
-                outputJson = formatDiagnostic(
-                    userPrompt = userPrompt,
-                    intent = "Protocole Complet de Traitement des Plaies et Coupures",
-                    dbSource = "Where There Is No Doctor & FirstAid Civile",
-                    isWarning = false,
-                    title = "🩹 Soin Complet des Plaies et Coupures de Terrain",
-                    steps = listOf(
-                        "1. NETTOYAGE MÉCANIQUE :",
-                        "   • Rincer à grande eau propre pendant 5 minutes pour chasser terre et particules.",
-                        "",
-                        "2. ANTISEPSIE NATURELLE :",
-                        "   • Miel pur non pasteurisé ou eau bouillie tiède salée (1 cuillère à café / litre).",
-                        "",
-                        "3. FERMETURE ET PANSEMENT :",
-                        "   • Rapprocher les berges avec un tissu sec stérile ou bandelettes adhésives.",
-                        "   • Renouveler le pansement dès qu'il est mouillé ou souillé.",
-                        "",
-                        "⚠️ Si la plaie a été causée par un métal rouillé ou de la terre : vérifiez impérativement la date de votre vaccin antitétanique (> 5 ans = consultation obligatoire sous 48h)."
-                    )
-                )
-            )
-        }
-
-        // ── 5. DOMAINE : URGENCES VITALES, RCP, HEIMLICH & AVC ────────────────
-        if (containsAny(qClean, listOf("arret cardiaque", "massage cardiaque", "rcp", "defibrillateur", "dae", "etouff", "heimlich", "pls", "avc", "inconscient"))) {
-            return ToolExecutionResult(
-                toolName = "search_survival_kb",
-                outputJson = formatDiagnostic(
-                    userPrompt = userPrompt,
-                    intent = "Gestes d'Urgence Vitale & Réanimation",
-                    dbSource = "oye-ahmad/Smart-FirstAid & kiwix/WikiMed",
-                    isWarning = true,
-                    title = "🫀 Gestes Immédiats de Sauvetage Vital",
-                    steps = listOf(
-                        "1. VICTIME INCONSCIENTE QUI NE RESPIRE PLUS ➔ ARRÊT CARDIAQUE :",
-                        "   • Alerter le 15 / 112 + réclamer un défibrillateur (DAE).",
-                        "   • Massage cardiaque immédiat au centre du thorax (bras tendus) : 100 à 120 compressions par minute, enfoncement de 5 à 6 cm.",
-                        "   • Continuer sans s'arrêter jusqu'à l'arrivée des secours ou du DAE.",
-                        "",
-                        "2. ÉTOUFFEMENT TOTAL (La personne ne peut ni respirer, ni parler, ni tousser) :",
-                        "   • 5 claques vigoureuses dans le haut du dos entre les omoplates.",
-                        "   • Si inefficace : 5 compressions abdominales (Manœuvre de Heimlich). Répéter le cycle.",
-                        "",
-                        "3. INCONSCIENT MAIS QUI RESPIRE NORMALEMENT :",
-                        "   • Position Latérale de Sécurité (PLS) sur le côté, bouche ouverte vers le sol pour éviter l'asphyxie."
-                    )
-                )
-            )
-        }
-
-        // ── 6. DOMAINE : HÉMORRAGIE MASSIVE & GARROT TOURNIQUET ──────────────
-        if (containsAny(qClean, listOf("hemorragie", "garrot", "tourniquet", "saignement abondant", "jet", "artere", "amputation"))) {
-            return ToolExecutionResult(
-                toolName = "search_survival_kb",
-                outputJson = formatDiagnostic(
-                    userPrompt = userPrompt,
-                    intent = "Hémorragie Massive — Protocole d'Urgence MARCH",
-                    dbSource = "bdkoeh/survivalRAG & MedGemma-FA (FM 4-25.11)",
-                    isWarning = true,
-                    title = "🩺 Arrêt d'Urgence d'une Hémorragie Massive",
-                    steps = listOf(
-                        "1. COMPRESSION DIRECTE IMMÉDIATE :",
-                        "   • Appuyer fermement de tout son poids sur la plaie avec un tissu propre pendant 10 minutes sans relâcher.",
-                        "",
-                        "2. GARROT TOURNIQUET (Si saignement en jet pulsatile sur un membre) :",
-                        "   • Poser le garrot 5 à 7 cm au-dessus de la plaie (jamais sur un coude ou genou).",
-                        "   • Serrer jusqu'à l'arrêt total du saignement et disparition du pouls distal.",
-                        "   • NOTER L'HEURE EXACTE DE POSE (ex: T: 15h30 sur le front ou le garrot).",
-                        "   • ⛔ Ne JAMAIS desserrer un garrot posé depuis plus de 2 heures sans supervision chirurgicale."
-                    )
-                )
-            )
-        }
-
-        // ── 7. DOMAINE : MORSURES DE SERPENTS & ENVENIMATIONS ─────────────────
-        if (containsAny(qClean, listOf("morsure", "serpent", "vipere", "piqure", "guepe", "frelon", "venin", "anaphylaxie", "allergie"))) {
-            return ToolExecutionResult(
-                toolName = "search_survival_kb",
-                outputJson = formatDiagnostic(
-                    userPrompt = userPrompt,
-                    intent = "Envenimations par Morsure ou Piqûre",
-                    dbSource = "kiwix/WikiMed & Where There Is No Doctor",
-                    isWarning = true,
-                    title = "🐍 Conduite à Tenir face à une Morsure de Vipère",
-                    steps = listOf(
-                        "1. GESTES VITAUX IMMÉDIATS :",
-                        "   • Allonger immédiatement la victime au repos complet (l'agitation et la marche accélèrent la diffusion du venin dans le système lymphatique).",
-                        "   • Immobiliser le membre mordu à l'aide d'une attelle improvisée, membre en position neutre.",
-                        "   • Retirer immédiatement bagues, montres et chaussures avant l'apparition de l'œdème.",
-                        "",
-                        "2. ⛔ INTERDICTIONS VITALES ABSOLUES :",
-                        "   • Ne JAMAIS inciser la plaie au couteau.",
-                        "   • Ne JAMAIS aspirer le venin avec la bouche ni utiliser de pompe aspirante (inefficace et risque d'infection).",
-                        "   • Ne pas poser de garrot serré (entraîne une nécrose locale massive).",
-                        "   • Alerter immédiatement le 15 ou le 112."
-                    )
-                )
-            )
-        }
-
-        // ── 8. DOMAINE : ABRI THERMIQUE & HYPOTHERMIE ─────────────────────────
-        if (containsAny(qClean, listOf("abri", "froid", "hypothermie", "nuit", "gel", "tarp", "bivouac", "chaleur", "canicule"))) {
-            return ToolExecutionResult(
-                toolName = "search_survival_kb",
-                outputJson = formatDiagnostic(
-                    userPrompt = userPrompt,
-                    intent = "Abri Thermique & Lutte contre l'Hypothermie",
-                    dbSource = "US Army FM 21-76 Survival Manual",
-                    isWarning = false,
-                    title = "🏕️ Isolation Thermique & Construction d'Abri d'Urgence",
-                    steps = listOf(
-                        "1. ISOLATION DU SOL (Priorité n°1 contre l'hypothermie) :",
-                        "   • La perte de chaleur par conduction vers le sol est 3 fois plus rapide que par l'air.",
-                        "   • Bâtir un matelas de 30 à 50 cm d'épaisseur avec des feuilles mortes, de la fougère ou des branches de conifères.",
-                        "",
-                        "2. UTILISATION OPTIMALE DE LA COUVERTURE DE SURVIE :",
-                        "   • Face dorée vers l'extérieur (argentée vers le corps) : retient jusqu'à 90% du rayonnement infrarouge du corps.",
-                        "   • Face argentée vers l'extérieur : protège du rayonnement solaire intense en cas de canicule.",
-                        "👉 Utilisez le bouton de géolocalisation ci-dessous pour trouver le refuge de montagne le plus proche !"
-                    )
-                )
-            )
-        }
-
-        // ── 9. FALLBACK GÉNÉRAL CONVERSATIONNEL ────────────────────────────────
+        // ── 8. FALLBACK : CONVERSATIONNEL BIENVEILLANT ────────────────────────
         return ToolExecutionResult(
             toolName = "search_survival_kb",
-            outputJson = formatDiagnostic(
+            outputJson = formatGuide(
                 userPrompt = userPrompt,
-                intent = "Orientation et Règle des 3 de Survie",
-                dbSource = "US Army FM 21-76 & Wilderness Survival Standards",
-                isWarning = false,
-                title = "🧭 SurvIA — Protocole Général & Règle des 3",
-                steps = listOf(
-                    "Bases de connaissances d'urgence actives en local 100% hors-ligne.",
-                    "",
-                    "📋 HIÉRARCHIE DES PRIORITÉS PHYSIOLOGIQUES (Règle des 3) :",
-                    "  • 3 minutes sans oxygène ou en cas d'hémorragie massive",
-                    "  • 3 heures sans abri thermique par froid extrême ou humidité (hypothermie)",
-                    "  • 3 jours sans eau potable (déshydratation aiguë)",
-                    "  • 3 semaines sans nourriture",
-                    "",
-                    "Précisez votre demande (blessure, désinfection, eau, abri, boussole) pour afficher le protocole opérationnel exact."
-                )
+                badge = "🧭 ASSISTANT DE SURVIE SURVIA",
+                title = "Je suis votre copilote d'urgence 100% autonome",
+                immediateActions = listOf(
+                    "Rappelez-vous de la Règle des 3 de survie :",
+                    "• 3 minutes sans oxygène (ou en cas d'hémorragie grave)",
+                    "• 3 heures sans abri par froid glacial ou pluie continue",
+                    "• 3 jours sans boire d'eau potable",
+                    "• 3 semaines sans manger"
+                ),
+                forbiddenActions = listOf(
+                    "Ne paniquez pas : arrêtez-vous, asseyez-vous 5 minutes, respirez calmement et observez votre environnement avant d'agir."
+                ),
+                vitalAlert = "Posez-moi votre question précise (ex: coupure clou rouillé, filtration de l'eau, garrot, refuge le plus proche) pour obtenir le protocole exact.",
+                source = "SurvIA • Moteur Certifié Hors-Ligne"
             )
         )
     }
@@ -372,9 +270,7 @@ class SearchSurvivalKB {
                 val start = after.indexOf('"')
                 if (start != -1) {
                     val end = after.indexOf('"', start + 1)
-                    if (end != -1) {
-                        return after.substring(start + 1, end).trim()
-                    }
+                    if (end != -1) return after.substring(start + 1, end).trim()
                 }
             }
             argsJson.trim()
@@ -401,29 +297,34 @@ class SearchSurvivalKB {
         return false
     }
 
-    private fun formatDiagnostic(
+    private fun formatGuide(
         userPrompt: String,
-        intent: String,
-        dbSource: String,
-        isWarning: Boolean,
+        badge: String,
         title: String,
-        steps: List<String>
+        immediateActions: List<String>,
+        forbiddenActions: List<String>,
+        vitalAlert: String,
+        source: String
     ): String {
         return buildString {
-            appendLine("🔍 DIAGNOSTIC PERSONNALISÉ")
-            if (userPrompt.isNotBlank() && !userPrompt.startsWith("{")) {
-                appendLine("• Demande : « $userPrompt »")
-            }
-            appendLine("• Analyse : $intent")
-            appendLine("• Base certifiée : $dbSource")
-            appendLine("• Statut : ${if (isWarning) "GARDE-FOU VITAL ACTIF" else "PROTOCOLE CERTIFIÉ HORS-LIGNE"}")
-            appendLine("───────────────────────────────────────────")
+            appendLine("🛡️ $badge")
             appendLine(title)
+            appendLine("───────────────────────────────────────────")
             appendLine()
-            steps.forEach { step ->
-                if (step.isEmpty()) appendLine()
-                else appendLine(step)
+            appendLine("✅ CE QU'IL FAUT FAIRE IMMÉDIATEMENT :")
+            immediateActions.forEach { act ->
+                appendLine("• $act")
             }
+            appendLine()
+            appendLine("⛔ CE QU'IL NE FAUT SURTOUT PAS FAIRE :")
+            forbiddenActions.forEach { fbd ->
+                appendLine("• $fbd")
+            }
+            appendLine()
+            appendLine("⚠️ VIGILANCE VITALE :")
+            appendLine(vitalAlert)
+            appendLine()
+            appendLine("📖 Référentiel certifié : $source")
         }.trimEnd()
     }
 }
