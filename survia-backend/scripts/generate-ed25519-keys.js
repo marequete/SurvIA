@@ -3,8 +3,8 @@
  *
  * Usage : npm run generate-keys
  *
- * → Affiche PRIVATE_KEY_HEX (à mettre dans .env du backend)
- * → Affiche PUBLIC_KEY_HEX  (à encoder en Base64 DER et injecter dans LicenseManager.kt)
+ * → Affiche PRIVATE_KEY_RAW_HEX (32 octets bruts — pour @noble/ed25519 dans index.js)
+ * → Affiche PUBLIC_KEY_B64       (DER SPKI X.509 en Base64 — pour LicenseManager.kt)
  *
  * ⚠️ La clé privée ne doit JAMAIS quitter le serveur backend.
  */
@@ -12,13 +12,15 @@ const { generateKeyPairSync } = require('crypto');
 
 const { privateKey, publicKey } = generateKeyPairSync('ed25519');
 
-const privHex = privateKey.export({ type: 'pkcs8', format: 'der' }).toString('hex');
-const pubHex  = publicKey.export({ type: 'spki',  format: 'der' }).toString('hex');
-const pubB64  = publicKey.export({ type: 'spki',  format: 'der' }).toString('base64');
+// PKCS#8 DER pour Ed25519 : 16 octets d'en-tête + 32 octets clé brute
+const pkcs8Der = privateKey.export({ type: 'pkcs8', format: 'der' });
+const rawPrivHex = pkcs8Der.slice(16).toString('hex');  // 32 octets bruts pour @noble/ed25519
+
+const pubB64 = publicKey.export({ type: 'spki', format: 'der' }).toString('base64');
 
 console.log('\n========== SurvIA Ed25519 Key Pair ==========');
-console.log('\n[.env backend] ED25519_PRIVATE_KEY_HEX=');
-console.log(privHex);
+console.log('\n[Fly.io secret] ED25519_PRIVATE_KEY_HEX= (32 octets bruts, pour @noble/ed25519)');
+console.log(rawPrivHex);
 console.log('\n[LicenseManager.kt] PUBLIC_KEY_B64 (Base64 DER X.509 / SPKI):');
 console.log(pubB64);
 console.log('\n=============================================');

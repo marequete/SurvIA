@@ -112,6 +112,8 @@ app.post('/api/activate', async (req, res) => {
 async function signLicense(hardwareId, tier) {
   const issuedAt = Math.floor(Date.now() / 1000);
   const payload  = JSON.stringify({ hardware_id: hardwareId, issued_at: issuedAt, tier });
+  // @noble/ed25519 v2 attend une clé brute 32 octets (pas PKCS#8)
+  // La variable d'env contient uniquement les 32 octets bruts (hex 64 chars)
   const privKey  = Buffer.from(PRIVATE_KEY_HEX, 'hex');
   const msgBytes = Buffer.from(payload, 'utf8');
   const sigBytes = await ed.sign(msgBytes, privKey);

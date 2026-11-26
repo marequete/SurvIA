@@ -22,9 +22,9 @@ import java.security.spec.X509EncodedKeySpec
  */
 object LicenseManager {
 
-    // ⚠️ Remplacer par la clé publique Ed25519 (Base64 DER X.509) du serveur de licence
-    // Laisser vide pendant les phases de développement : la vérification sera "bypass dev"
-    private const val PUBLIC_KEY_B64 = ""
+    // Clé publique Ed25519 (Base64 DER SPKI X.509) du serveur de licence
+    // Générée via : npm run generate-keys dans survia-backend/
+    private const val PUBLIC_KEY_B64 = "MCowBQYDK2VwAyEArM1Vd3mB3HVbdGZNTB50rlXG1hVUfgxZ/bV+lAV9M0E="
 
     // En mode développement (clé absente) : ne verrouille pas l'app
     private const val DEV_MODE = true  // Passer à false en production
