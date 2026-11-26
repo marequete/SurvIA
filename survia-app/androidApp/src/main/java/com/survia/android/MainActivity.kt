@@ -31,6 +31,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.survia.android.ai.GemmaModelManager
 import com.survia.android.ai.ModelState
+import com.survia.android.security.IntegrityGuard
 import com.survia.android.service.GemmaForegroundService
 import com.survia.tools.*
 import kotlinx.coroutines.launch
@@ -69,6 +70,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (!IntegrityGuard.enforceIntegrity(this)) return
 
         // Instanciation dans l'ordre des dépendances
         poiStore = UserPoiStore(applicationContext.filesDir.absolutePath)
