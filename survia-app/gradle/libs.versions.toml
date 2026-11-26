@@ -8,7 +8,7 @@ androidx-lifecycle = "2.8.7"
 androidx-camera = "1.4.1"
 coroutines = "1.9.0"
 playServicesLocation = "21.3.0"
-mediapipe = "0.10.14"
+mediapipe = "0.10.20"
 litert = "0.19.1"
 
 [libraries]

@@ -131,8 +131,10 @@ class GemmaModelManager(private val context: Context) {
 
             llmInference = LlmInference.createFromOptions(context, options)
             _state.value = ModelState.Ready(modelTierName)
-        } catch (e: Exception) {
-            _state.value = ModelState.Error("Erreur initialisation modèle: ${e.message}")
+        } catch (e: Throwable) {
+            // En cas d'incompatibilité GPU/OpenCL du SoC ou fichier modèle corrompu
+            val errMsg = e.message ?: "GPU incompatible"
+            _state.value = ModelState.Error("Moteur KB actif (GPU: $errMsg)")
         }
     }
 
