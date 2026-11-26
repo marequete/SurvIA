@@ -6,8 +6,8 @@
 [![Android](https://img.shields.io/badge/Android-8.0%2B%20(API%2026%2B)-38BDF8)](https://github.com/marequete/SurvIA)
 
 > 🚀 **Liens Rapides :**  
-> 📥 **[Télécharger directement SurvIA.apk (v1.1.4 • 22 Mo)](https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.apk)**  
-> 📦 **[Consulter les Releases GitHub (v1.1.4)](https://github.com/marequete/SurvIA/releases)**
+> 📥 **[Télécharger directement SurvIA.apk (v1.1.5 • 23 Mo)](https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.apk)**  
+> 📦 **[Consulter les Releases GitHub (v1.1.5)](https://github.com/marequete/SurvIA/releases)**
 
 **SurvIA** est un assistant de survie autonome propulsé par les modèles d'intelligence artificielle on-device **Google Gemma 4**, conçu pour fonctionner sans aucun accès au réseau Internet, sans carte SIM et sans relais cellulaire.
 
