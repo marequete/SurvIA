@@ -32,6 +32,8 @@ import com.google.android.gms.location.Priority
 import com.survia.android.ai.GemmaModelManager
 import com.survia.android.ai.ModelState
 import com.survia.android.security.IntegrityGuard
+import com.survia.android.security.HardwareBinding
+import com.survia.android.security.LicenseManager
 import com.survia.android.service.GemmaForegroundService
 import com.survia.tools.*
 import kotlinx.coroutines.launch
@@ -86,14 +88,32 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             SurvIADarkTheme {
-                SurvIAMainScreen(
-                    modelManager = modelManager,
-                    poiStore = poiStore,
-                    getCurrentCoords = { lastKnownCoords },
-                    onOpenOrganicMaps = { openOrganicMaps(lastKnownCoords) },
-                    onExecuteTool = { toolName, argsJson -> router.execute(toolName, argsJson) },
-                    onAddPoi = { poi -> poiStore.addPoi(poi) }
-                )
+                val licenseStatus = remember { LicenseManager.check(applicationContext) }
+                val hardwareId = remember { HardwareBinding.getHardwareId(applicationContext) }
+
+                when (licenseStatus) {
+                    is LicenseManager.LicenseStatus.Valid,
+                    is LicenseManager.LicenseStatus.DevMode -> {
+                        SurvIAMainScreen(
+                            modelManager = modelManager,
+                            poiStore = poiStore,
+                            getCurrentCoords = { lastKnownCoords },
+                            onOpenOrganicMaps = { openOrganicMaps(lastKnownCoords) },
+                            onExecuteTool = { toolName, argsJson -> router.execute(toolName, argsJson) },
+                            onAddPoi = { poi -> poiStore.addPoi(poi) }
+                        )
+                    }
+                    else -> {
+                        SurvIALockScreen(
+                            hardwareId = hardwareId,
+                            reason = licenseStatus,
+                            onLicenseActivated = { licenseJson ->
+                                LicenseManager.saveLicenseJson(applicationContext, licenseJson)
+                                recreate()
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -155,6 +175,59 @@ fun SurvIADarkTheme(content: @Composable () -> Unit) {
         ),
         content = content
     )
+}
+
+// ─── Écran de verrouillage (Licence absente ou invalide) ──────────────────────
+
+@Composable
+fun SurvIALockScreen(
+    hardwareId: String,
+    reason: LicenseManager.LicenseStatus,
+    onLicenseActivated: (String) -> Unit
+) {
+    val reasonText = when (reason) {
+        is LicenseManager.LicenseStatus.NotFound       -> "Aucune licence trouvée sur cet appareil."
+        is LicenseManager.LicenseStatus.HardwareMismatch -> "Licence liée à un autre appareil."
+        is LicenseManager.LicenseStatus.SignatureInvalid -> "Licence corrompue ou falsifiée."
+        else -> ""
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF090D11))
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("🔒 SurvIA — Activation Requise",
+            fontWeight = FontWeight.Bold, color = Color.White, fontSize = 20.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(reasonText, color = Color(0xFFEF4444), fontSize = 13.sp)
+        Spacer(modifier = Modifier.height(24.dp))
+        Text("Identifiant appareil :", color = Color(0xFF94A3B8), fontSize = 11.sp)
+        Spacer(modifier = Modifier.height(4.dp))
+        Surface(color = Color(0xFF111820), shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth()) {
+            Text(hardwareId.take(32) + "…",
+                color = Color(0xFF38BDF8), fontSize = 10.sp,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier.padding(10.dp))
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Text("Après votre achat, scannez le QR Code d'activation reçu par email ou sur la page de confirmation.",
+            color = Color(0xFF94A3B8), fontSize = 12.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = { /* Phase 4 : scanner QR Code survia://activate?token=... */ },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("📷 Scanner le QR Code d'activation", color = Color(0xFF090D11),
+                fontWeight = FontWeight.Bold)
+        }
+    }
 }
 
 // ─── Écran principal ──────────────────────────────────────────────────────────
