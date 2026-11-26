@@ -750,7 +750,7 @@ fun InAppMapBottomSheet(
                     ) {
                         Text("📍 Votre Position Actuelle", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         Text(
-                            "Lat: ${currentCoords.lat} | Lon: ${currentCoords.lon} (Alt: ${currentCoords.alt.toInt()}m)",
+                            "Lat: ${String.format("%.4f", currentCoords.lat)} | Lon: ${String.format("%.4f", currentCoords.lon)}",
                             color = Color(0xFF94A3B8),
                             fontSize = 11.sp
                         )
