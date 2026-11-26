@@ -296,7 +296,7 @@ fun SurvIAMainScreen(
                 .padding(horizontal = 12.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(messages) { msg -> ChatBubble(msg) }
+            items(messages) { msg -> ChatBubble(msg, onOpenInAppMap = { showInAppMapSheet = true }) }
         }
     }
 
@@ -485,7 +485,7 @@ fun SurvIABottomBar(
 // ─── Bulle de chat ────────────────────────────────────────────────────────────
 
 @Composable
-fun ChatBubble(msg: ChatMessage) {
+fun ChatBubble(msg: ChatMessage, onOpenInAppMap: () -> Unit = {}) {
     val bg = when {
         msg.isThinking -> Color(0xFF1A2A1A)
         msg.isWarning  -> Color(0xFF7F1D1D)
@@ -531,13 +531,15 @@ fun ChatBubble(msg: ChatMessage) {
                     Spacer(modifier = Modifier.height(10.dp))
                     Button(
                         onClick = {
-                            try {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(msg.actionButtonUri))
-                                context.startActivity(intent)
-                            } catch (_: Exception) {
+                            if (msg.actionButtonUri.startsWith("survia://")) {
+                                onOpenInAppMap()
+                            } else {
                                 try {
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:45.1927,5.7276?q=Point_Survie")))
-                                } catch (_: Exception) {}
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(msg.actionButtonUri))
+                                    context.startActivity(intent)
+                                } catch (_: Exception) {
+                                    onOpenInAppMap()
+                                }
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
