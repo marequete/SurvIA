@@ -1,0 +1,21 @@
+{
+  "name": "survia-license-server",
+  "version": "1.0.0",
+  "description": "SurvIA License Backend — Stripe + Ed25519 activation (Leapcell)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "generate-keys": "node scripts/generate-ed25519-keys.js",
+    "db:migrate": "node scripts/migrate.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.18.3",
+    "stripe": "^14.25.0",
+    "@noble/ed25519": "^2.1.0",
+    "pg": "^8.11.5",
+    "dotenv": "^16.4.5"
+  }
+}
