@@ -320,11 +320,11 @@ fun SurvIATopBar(
                     is ModelState.Downloading -> "⏳ Téléchargement : ${s.progressPercent}% (${s.downloadedMb}/${s.totalMb} Mo)"
                     is ModelState.LoadingMmap -> "⚡ Chargement mmap..."
                     is ModelState.NotDownloaded -> "○ Moteur local KB actif"
-                    is ModelState.Error       -> "⚠️ Erreur: ${s.message}"
+                    is ModelState.Error       -> if (s.message.contains("GPU")) "● Moteur KB actif (Fallback CPU)" else "⚠️ ${s.message}"
                     is ModelState.Checking    -> "Vérification..."
                 }
                 Text(statusText,
-                    color = if (modelState is ModelState.Ready) Color(0xFF10B981) else Color(0xFF38BDF8),
+                    color = if (modelState is ModelState.Ready || (modelState is ModelState.Error && (modelState as ModelState.Error).message.contains("GPU"))) Color(0xFF10B981) else Color(0xFF38BDF8),
                     fontSize = 11.sp)
             }
             Button(
