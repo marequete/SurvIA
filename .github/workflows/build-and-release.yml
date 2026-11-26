@@ -43,7 +43,7 @@ jobs:
       - name: Build APK with Gradle 8.11.1
         run: |
           cd survia-app
-          gradle :androidApp:assembleDebug --stacktrace
+          gradle :androidApp:assembleDebug --stacktrace --info || (cat /home/runner/.gradle/daemon/*/daemon*.log || true; exit 1)
         env:
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
