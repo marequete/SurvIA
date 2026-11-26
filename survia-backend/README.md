@@ -1,20 +1,60 @@
 # SurvIA License Backend
 
-Backend de licence pour **SurvIA**, déployable sur **Leapcell** (free tier).
+Backend de licence pour **SurvIA**, déployable sur **Fly.io** (free tier) + **Neon** (PostgreSQL permanent gratuit).
 
 ## Stack
-- **Runtime :** Node.js 20
-- **Base de données :** PostgreSQL (Leapcell Free Tier)
+- **Runtime :** Node.js 20 (Docker, Fly.io `shared-cpu-1x` — always-on)
+- **Base de données :** PostgreSQL Neon (free tier permanent, sans expiration)
 - **Paiement :** Stripe Checkout
 - **Cryptographie :** Ed25519 (`@noble/ed25519`)
 
-## Déploiement Leapcell
+## Pourquoi Fly.io + Neon ?
 
-1. Crée un nouveau service sur [leapcell.io](https://leapcell.io) → **New Service** → **GitHub** → repo `SurvIA`, dossier `survia-backend/`.
-2. **Build Command :** `npm install`
-3. **Start Command :** `node index.js`
-4. **Port :** `8080`
-5. Active la **base PostgreSQL gratuite** dans Leapcell et copie le `DATABASE_URL`.
+| Critère | Avantage |
+|---|---|
+| **Always-on** | `auto_stop_machines = false` → 0 cold start |
+| **PostgreSQL permanent** | Neon ne supprime jamais les données (contrairement à Render 30j) |
+| **Coût réel** | ~0 €/mois (couvert par \$5 crédits Fly.io mensuels) |
+| **Usage commercial** | Autorisé sur les deux plateformes |
+
+## Déploiement Fly.io
+
+### Prérequis
+```bash
+# Installer Fly CLI
+curl -L https://fly.io/install.sh | sh
+fly auth login
+```
+
+### 1. Créer l'app Fly.io
+```bash
+cd survia-backend
+fly launch --name survia-license --region cdg --no-deploy
+```
+
+### 2. Base de données Neon (gratuit, permanent)
+1. Créer un compte sur [neon.tech](https://neon.tech)
+2. **New Project** → région `eu-central-1` → copier le `DATABASE_URL`
+
+### 3. Variables d'environnement Fly.io
+```bash
+fly secrets set DATABASE_URL="postgresql://..."
+fly secrets set STRIPE_SECRET_KEY="sk_live_..."
+fly secrets set STRIPE_WEBHOOK_SECRET="whsec_..."
+fly secrets set ED25519_PRIVATE_KEY_HEX="..."
+```
+
+### 4. Déployer
+```bash
+fly deploy
+```
+
+### 5. Migration de la base
+```bash
+fly ssh console -C "node scripts/migrate.js"
+# ou localement avec le DATABASE_URL dans .env :
+npm run db:migrate
+```
 
 ## Configuration (Variables d'environnement)
 

@@ -1,0 +1,18 @@
+app = "survia-license"
+primary_region = "cdg"  # Paris — le plus proche de votre audience
+
+[build]
+
+[env]
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false   # Always-on (ne se coupe pas)
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
