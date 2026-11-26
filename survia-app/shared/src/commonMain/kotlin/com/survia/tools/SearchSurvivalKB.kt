@@ -238,7 +238,39 @@ class SearchSurvivalKB {
             )
         }
 
-        // ── 8. FALLBACK : CONVERSATIONNEL BIENVEILLANT ────────────────────────
+        // ── 8. DOMAINE : PANNE D'ÉLECTRICITÉ, NOIR & ÉCLAIRAGE DE FORTUNE ─────────
+        // Tolérance phonétique aux fautes de frappe : "j'aime plus", "pu de", "plus de lumière", "blackout", "sombre", "courant"
+        val isBlackoutOrLight = containsAny(qClean, listOf(
+            "lumiere", "lumier", "eclairage", "eclaire", "blackout", "panne",
+            "electricite", "electrique", "courant", "disjoncteur", "fusible",
+            "noir", "obscurite", "sombre", "torche", "lampe", "bougie",
+            "plus de lumiere", "pas de lumiere", "aime plus de lumiere"
+        )) || (containsAny(qClean, listOf("lumiere", "courant", "electricite")) && containsAny(qClean, listOf("plus", "pas", "aime", "coupe", "eteint")))
+
+        if (isBlackoutOrLight) {
+            return ToolExecutionResult(
+                toolName = "search_survival_kb",
+                outputJson = formatGuide(
+                    userPrompt = userPrompt,
+                    badge = "💡 PANNE DE COURANT & ÉCLAIRAGE DE FORTUNE",
+                    title = "Que faire en cas de coupure d'électricité et dans l'obscurité",
+                    immediateActions = listOf(
+                        "1. SÉCURITÉ IMMÉDIATE (Pas de chute) : Ne vous précipitez pas dans le noir. Utilisez l'écran de votre téléphone au niveau de luminosité minimum pour vous repérer sans vider la batterie.",
+                        "2. VÉRIFICATION DU DISJONCTEUR : Regardez par la fenêtre si le quartier/la rue a encore de la lumière. Si oui, vérifiez le disjoncteur différentiel général de votre tableau électrique.",
+                        "3. LAMPE À HUILE DE FORTUNE (Autonomie 6h+) : Dans une boîte de conserve ou une tasse, versez de l'huile de cuisine (tournesol, olive). Enroulez un morceau de lacet en coton ou une bandelette de coton autour d'un trombone pour former une mèche. Laissez imbiber 2 minutes et allumez.",
+                        "4. PRÉSERVEZ LE FROID : N'ouvrez sous aucun prétexte le réfrigérateur ou congélateur (les aliments restent intacts 24h à 48h porte fermée)."
+                    ),
+                    forbiddenActions = listOf(
+                        "⛔ Ne JAMAIS allumer de flamme ou de briquet si vous sentez la moindre odeur suspecte (gaz ou hydrocarbure).",
+                        "⛔ Ne laissez jamais une bougie ou flamme sans surveillance à proximité de rideaux ou de meubles en bois."
+                    ),
+                    vitalAlert = "Économisez la batterie de votre smartphone : activez immédiatement le mode Ultra Économie d'énergie. Votre téléphone est votre outil de survie et de secours.",
+                    source = "US Army FM 21-76 & kit-survie Sécurité Civile"
+                )
+            )
+        }
+
+        // ── 9. FALLBACK : CONVERSATIONNEL BIENVEILLANT ────────────────────────
         return ToolExecutionResult(
             toolName = "search_survival_kb",
             outputJson = formatGuide(
