@@ -515,26 +515,43 @@ fun SurvIAMainScreen(
                             val thinkingIdx = messages.size
                             messages.add(ChatMessage(false, "⏳ Analyse en cours...", isThinking = true))
 
-                            // ── RAG LOCAL : KB d'abord, GPS si requête géo ──
-                            val qLow = userQ.lowercase()
+                            // ── ÉTAPE 1 (AMONT) : Gemma analyse l'intention pour router vers la bonne base certifiée ──
+                            var intentKeywords = ""
+                            if (modelManager.isReady()) {
+                                try {
+                                    val routePrompt = """
+                                        Analyse cette demande d'urgence : "$userQ".
+                                        Réponds UNIQUEMENT par les mots-clés de catégories applicables parmi : champignon, plante, hemorragie, garrot, arret cardiaque, etouffement, morsure, plaie, tetanos, eau, filtre, abri, hypothermie, blackout, gps, general.
+                                        Ne rédige aucune phrase.
+                                    """.trimIndent()
+                                    intentKeywords = modelManager.generateResponse(routePrompt).trim()
+                                } catch (_: Throwable) {
+                                    intentKeywords = ""
+                                }
+                            }
+
+                            val effectiveQuery = if (intentKeywords.isNotBlank()) "$userQ $intentKeywords" else userQ
+
+                            // ── ÉTAPE 2 (RAG CERTIFIÉ) : Consultation des 7 bases de données & GPS ──
+                            val qLow = effectiveQuery.lowercase()
                             val isWaterQuery   = containsAny(qLow, listOf("eau", "source", "soif", "boire", "potable"))
-                            val isShelterQuery = containsAny(qLow, listOf("refuge", "abri", "froid", "bivouac"))
+                            val isShelterQuery = containsAny(qLow, listOf("refuge", "abri", "froid", "bivouac", "hypothermie"))
                             val isGeoQuery     = containsAny(qLow, listOf("gps", "coordonnees", "ou ", "carte", "position", "source", "refuge"))
 
-                            val queryPayload = org.json.JSONObject().put("query", userQ).toString()
+                            val queryPayload = org.json.JSONObject().put("query", effectiveQuery).toString()
                             val kbResult = onExecuteTool("search_survival_kb", queryPayload)
 
-                            // ── SYNTHÈSE LLM LOCALE (Si Gemma actif et hors garde-fou mortel, reformule sans halluciner) ──
+                            // ── ÉTAPE 3 (AVAL) : Gemma traduit le protocole certifié en langage naturel sans rien inventer ──
                             var finalReplyText = kbResult.outputJson
                             if (modelManager.isReady() && !kbResult.isFatalGuardrailTriggered) {
                                 try {
                                     val prompt = """
                                         Tu es SurvIA, un expert de survie d'urgence calme, direct et bienveillant.
                                         L'utilisateur en détresse demande : "$userQ".
-                                        Voici les données certifiées du protocole d'urgence :
+                                        Voici le protocole certifié issu de la base de données médicale et de survie :
                                         ${kbResult.outputJson}
                                         
-                                        Consigne vitale : Réponds directement à sa situation en t'appuyant rigoureusement sur ces données. N'invente JAMAIS de dosage, posologie, coordonnée ou étape absente des données certifiées. Si une donnée manque, dis-le clairement. Pas d'introduction superflue, sois rassurant, clair et opérationnel.
+                                        Consigne vitale : Traduis et décris ce protocole en langage naturel clair, rassurant et facile à exécuter dans l'urgence. N'invente JAMAIS de dosage, posologie, coordonnée ou étape absente du protocole ci-dessus. Contente-toi de reformuler fidèlement ces faits exacts.
                                     """.trimIndent()
                                     val aiText = modelManager.generateResponse(prompt).trim()
                                     if (aiText.isNotBlank()) {
