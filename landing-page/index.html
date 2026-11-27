@@ -43,8 +43,23 @@
       <button onclick="toggleTab('qr')" id="tab-qr-btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
         📷 QR Code APK
       </button>
+      <button onclick="startStripeCheckout()" id="buy-pro-btn" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold transition shadow">
+        💳 Licence Pro
+      </button>
     </div>
   </header>
+
+  <!-- Bandeau Post-Paiement Stripe : QR Code d'Activation Unique -->
+  <div id="activation-modal" class="hidden max-w-2xl w-full mx-auto mt-4 glass p-6 rounded-2xl border-emerald-500/60 text-center space-y-4">
+    <div class="text-emerald-400 text-xs font-bold uppercase tracking-wider">✅ Paiement Confirmé • Licence Unique Générée</div>
+    <h2 class="text-xl font-extrabold text-white">Votre QR Code d'Activation SurvIA Pro</h2>
+    <p class="text-xs text-slate-300">Scannez ce QR Code depuis l'application SurvIA sur votre téléphone. Usage unique : il sera lié définitivement à votre appareil.</p>
+    <div id="activation-status" class="text-xs text-amber-400 font-mono">⏳ Validation du token en cours...</div>
+    <div id="activation-qr-box" class="hidden flex flex-col items-center space-y-3">
+      <div id="activation-qrcode" class="p-3 bg-white rounded-xl shadow-xl"></div>
+      <div class="text-[11px] font-mono text-emerald-400 break-all bg-slate-950 px-3 py-2 rounded-lg border border-slate-800" id="activation-token-text"></div>
+    </div>
+  </div>
 
   <main class="max-w-6xl w-full mx-auto my-4 flex-1">
 
@@ -310,12 +325,16 @@
         </div>
 
         <div class="space-y-3 pt-2">
-          <div class="text-xs text-slate-400 font-semibold uppercase">Fichiers d'installation prêts :</div>
+          <div class="text-xs text-slate-400 font-semibold uppercase">Fichiers d'installation & Licence Pro :</div>
           <div class="flex flex-wrap gap-3">
             <a href="https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.apk"
                class="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs inline-flex items-center gap-2 transition shadow">
               <span>🤖 Télécharger SurvIA.apk (v1.1.5 • 23 Mo)</span>
             </a>
+            <button onclick="startStripeCheckout()"
+               class="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs inline-flex items-center gap-2 transition shadow">
+              <span>💳 Acheter Licence Pro (1 appareil)</span>
+            </button>
             <a href="https://github.com/marequete/SurvIA/releases" target="_blank"
                class="px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-800">
               📦 Toutes les Releases GitHub
@@ -836,10 +855,70 @@
       return div.innerHTML;
     }
 
-    // ─── 5. INITIALISATION ───────────────────────────────────────────────────
+    // ─── 5. STRIPE CHECKOUT & ACTIVATION QR ──────────────────────────────────
+    const LICENSE_API = "https://survia-license.fly.dev";
+
+    async function startStripeCheckout() {
+      const btn = document.getElementById("buy-pro-btn");
+      const prev = btn ? btn.innerText : "";
+      if (btn) { btn.disabled = true; btn.innerText = "⏳ Redirection Stripe..."; }
+      try {
+        const res = await fetch(`${LICENSE_API}/api/create-checkout-session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ return_url: window.location.origin })
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert("Erreur paiement : " + (data.error || "réponse invalide"));
+        }
+      } catch (e) {
+        alert("Serveur de licence injoignable : " + e.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = prev; }
+      }
+    }
+
+    async function checkStripeReturnSession() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get("session_id");
+      if (!sessionId) return;
+
+      const modal = document.getElementById("activation-modal");
+      const statusEl = document.getElementById("activation-status");
+      const qrBox = document.getElementById("activation-qr-box");
+      const qrEl = document.getElementById("activation-qrcode");
+      const tokenEl = document.getElementById("activation-token-text");
+      if (modal) modal.classList.remove("hidden");
+
+      for (let i = 0; i < 12; i++) {
+        try {
+          const res = await fetch(`${LICENSE_API}/api/license-token?session_id=${encodeURIComponent(sessionId)}`);
+          if (res.ok) {
+            const data = await res.json();
+            const activationUri = `survia://activate?token=${data.token}`;
+            if (statusEl) statusEl.innerText = "✅ Licence prête à être scannée (usage unique)";
+            if (tokenEl) tokenEl.innerText = activationUri;
+            if (qrBox) qrBox.classList.remove("hidden");
+            if (qrEl && window.QRCode) {
+              qrEl.innerHTML = "";
+              new QRCode(qrEl, { text: activationUri, width: 190, height: 190, colorDark: "#090d11", colorLight: "#ffffff" });
+            }
+            return;
+          }
+        } catch (_) {}
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      if (statusEl) statusEl.innerText = "⚠️ Webhook Stripe en attente. Rechargez la page dans quelques secondes.";
+    }
+
+    // ─── 6. INITIALISATION ───────────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
       loadPois();
       runDiagnosticProof();
+      checkStripeReturnSession();
 
       // QR Code Init
       const qrTarget = "https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.apk";
