@@ -24,12 +24,50 @@ const PRIVATE_KEY_HEX = process.env.ED25519_PRIVATE_KEY_HEX;
 const PORT            = process.env.PORT || 8080;
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 // IMPORTANT : le webhook Stripe a besoin du body brut (raw Buffer)
 app.use('/webhook/stripe', express.raw({ type: 'application/json' }));
 app.use(express.json());
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (_, res) => res.json({ status: 'ok', service: 'survia-license' }));
+
+// ─── POST /api/create-checkout-session ────────────────────────────────────────
+app.post('/api/create-checkout-session', async (req, res) => {
+  try {
+    const returnOrigin = (req.body && req.body.return_url) || 'https://sonic-cypress-jl7xv8i.tmp.now';
+    const priceId = process.env.STRIPE_PRICE_ID;
+    if (!priceId) return res.status(503).json({ error: 'STRIPE_PRICE_ID not configured' });
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${returnOrigin}/?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${returnOrigin}/?canceled=true`
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/license-token?session_id=... ────────────────────────────────────
+app.get('/api/license-token', async (req, res) => {
+  const { session_id } = req.query;
+  if (!session_id) return res.status(400).json({ error: 'session_id required' });
+  const { rows } = await pool.query(
+    'SELECT token, status FROM licenses WHERE stripe_session_id = $1',
+    [session_id]
+  );
+  if (rows.length === 0) return res.status(404).json({ error: 'Pending webhook confirmation' });
+  res.json({ token: rows[0].token, status: rows[0].status });
+});
 
 // ─── POST /webhook/stripe ─────────────────────────────────────────────────────
 // Stripe envoie l'événement checkout.session.completed après un paiement validé.
