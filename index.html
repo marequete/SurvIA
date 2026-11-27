@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurvIA • Portail Officiel & Licence Pro</title>
+  <meta name="description" content="SurvIA — L'assistant de survie IA 100% hors-ligne. Gemma on-device, 7 bases médicales certifiées, GPS sans réseau. L'IA qui peut vous sauver la vie sans connexion." />
+  <title>SurvIA — L'IA de Survie qui Fonctionne Quand Plus Rien Ne Fonctionne</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -11,6 +12,9 @@
     .badge-offline { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; }
     .glass { background: #111820; border: 1px solid #1f2d3d; }
     .radar-grid { background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, rgba(9,13,17,0.95) 70%); }
+    .hero-glow { text-shadow: 0 0 60px rgba(16,185,129,0.4); }
+    .card-hover { transition: transform 0.2s, border-color 0.2s; }
+    .card-hover:hover { transform: translateY(-2px); border-color: rgba(16,185,129,0.5); }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between p-3 md:p-6">
@@ -27,15 +31,15 @@
       </div>
       <div>
         <h1 class="text-lg md:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-          SurvIA <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">v1.1.5</span>
+          SurvIA <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">v1.2.0</span>
         </h1>
-        <p class="text-[11px] text-slate-400">Agent IA de Survie Hors-Ligne • GPS Collaboratif & Skills par Situation</p>
+        <p class="text-[11px] text-slate-400">Agent IA de Survie Hors-Ligne • GPS Collaboratif • Médecine d'Urgence Certifiée</p>
       </div>
     </div>
     <div class="flex items-center gap-2">
       <span class="badge-offline px-2.5 py-1 rounded-full text-[11px] font-semibold">100% HORS-LIGNE</span>
       <button onclick="toggleTab('qr')" id="tab-qr-btn" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold transition">
-        📷 Télécharger APK
+        📥 Télécharger APK
       </button>
       <button onclick="toggleTab('gps')" id="tab-gps-btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
         🗺️ GPS & POI Collaboratif
@@ -58,11 +62,129 @@
     </div>
   </div>
 
-  <main class="max-w-6xl w-full mx-auto my-4 flex-1">
+  <main class="max-w-6xl w-full mx-auto my-6 flex-1 space-y-16">
 
-    <!-- ════════════════════════════════════════════════════════════════════════
-         SECTION 2 : GPS & POI COLLABORATIF (CARNET DE TERRAIN ENRICHI)
-         ════════════════════════════════════════════════════════════════════════ -->
+    <!-- ══════════════════ HERO — Accroche Produit ══════════════════ -->
+    <section class="text-center space-y-6 py-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-900/40 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+        <span class="animate-pulse">●</span> Disponible · Android 8.0+ · Aucun Play Store requis
+      </div>
+      <h2 class="text-3xl md:text-5xl font-black text-white leading-tight hero-glow">
+        L'IA qui peut vous sauver la vie<br/>
+        <span class="text-emerald-400">quand plus rien ne fonctionne.</span>
+      </h2>
+      <p class="text-sm md:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+        Pas de réseau. Pas de carte SIM. Pas de cloud. SurvIA fonctionne en mode avion complet —
+        médecine d'urgence, GPS satellite, analyse caméra — tout s'exécute directement sur votre téléphone.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4 pt-2">
+        <a href="https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.apk"
+           class="px-7 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition shadow-lg shadow-emerald-900/40">
+          📥 Télécharger gratuitement
+        </a>
+        <button onclick="startStripeCheckout()"
+           class="px-7 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition shadow-lg shadow-amber-900/40">
+          💳 Activer Licence Pro — 19,90 €
+        </button>
+      </div>
+      <p class="text-[11px] text-slate-500">Version gratuite : bases certifiées complètes • Licence Pro : inférence Gemma 4 on-device + analyse langage naturel</p>
+    </section>
+
+    <!-- ══════════════════ ARGUMENT 1 : Scenario de vie ou de mort ══════════════════ -->
+    <section class="glass rounded-3xl p-6 md:p-10 space-y-6">
+      <div class="text-center space-y-2">
+        <div class="text-xs uppercase tracking-widest text-amber-400 font-bold">Pourquoi SurvIA existe</div>
+        <h3 class="text-2xl md:text-3xl font-extrabold text-white">3 situations. 0 réseau. Que faites-vous ?</h3>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="glass card-hover rounded-2xl p-5 border border-slate-700 space-y-3">
+          <div class="text-3xl">🩸</div>
+          <div class="text-sm font-bold text-white">Hémorragie massive en forêt</div>
+          <p class="text-xs text-slate-400 leading-relaxed">SurvIA vous guide pas à pas : pose du garrot, pression directe, timing exact. Protocole issu de l'<strong class="text-slate-200">US Army FM 21-76</strong>.</p>
+        </div>
+        <div class="glass card-hover rounded-2xl p-5 border border-slate-700 space-y-3">
+          <div class="text-3xl">🧭</div>
+          <div class="text-sm font-bold text-white">Perdu en montagne, nuit tombante</div>
+          <p class="text-xs text-slate-400 leading-relaxed">GPS satellite actif, même en mode avion. Distance et temps de marche calculés. Itinéraire vers les refuges enregistrés par la communauté.</p>
+        </div>
+        <div class="glass card-hover rounded-2xl p-5 border border-slate-700 space-y-3">
+          <div class="text-3xl">⚡</div>
+          <div class="text-sm font-bold text-white">Blackout total — plus de courant</div>
+          <p class="text-xs text-slate-400 leading-relaxed">Protocoles éclairage de fortune, conservation des aliments, eau d'urgence. Tout sans aucune connexion, en 2 secondes.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ ARGUMENT 2 : Fonctionnement de l'IA ══════════════════ -->
+    <section class="space-y-6">
+      <div class="text-center space-y-2">
+        <div class="text-xs uppercase tracking-widest text-emerald-400 font-bold">Comment ça marche</div>
+        <h3 class="text-2xl md:text-3xl font-extrabold text-white">Une IA qui ne devine pas. Elle sait.</h3>
+        <p class="text-sm text-slate-400 max-w-xl mx-auto">SurvIA est la seule application qui combine un vrai modèle IA local <em>et</em> des bases médicales certifiées. Zero hallucination garantie.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="relative glass card-hover rounded-2xl p-6 border border-emerald-500/20 space-y-3">
+          <div class="text-xs font-mono text-emerald-400 uppercase tracking-wider">① Amont</div>
+          <div class="text-base font-bold text-white">Gemma analyse votre question</div>
+          <p class="text-xs text-slate-400 leading-relaxed">Le modèle Gemma 4 on-device comprend votre langage naturel et identifie exactement quel protocole chercher.</p>
+        </div>
+        <div class="relative glass card-hover rounded-2xl p-6 border border-amber-500/20 space-y-3">
+          <div class="text-xs font-mono text-amber-400 uppercase tracking-wider">② Certifié</div>
+          <div class="text-base font-bold text-white">7 bases médicales & survie</div>
+          <p class="text-xs text-slate-400 leading-relaxed">US Army FM 21-76 · Where There Is No Doctor · Smart-FirstAid · WikiMed · kit-survie · SurvivalRAG · SurvivalManual.</p>
+        </div>
+        <div class="relative glass card-hover rounded-2xl p-6 border border-sky-500/20 space-y-3">
+          <div class="text-xs font-mono text-sky-400 uppercase tracking-wider">③ Aval</div>
+          <div class="text-base font-bold text-white">Réponse claire et opérationnelle</div>
+          <p class="text-xs text-slate-400 leading-relaxed">Gemma reformule le protocole exact en langage naturel, rassurant et direct. Sans inventer. Sans approximer.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ ARGUMENT 3 : Tableau Comparatif Libre vs Pro ══════════════════ -->
+    <section class="glass rounded-3xl p-6 md:p-10 space-y-6">
+      <div class="text-center space-y-2">
+        <h3 class="text-2xl md:text-3xl font-extrabold text-white">Gratuit vs Licence Pro</h3>
+        <p class="text-sm text-slate-400">Un seul paiement. Un seul appareil. À vie.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div class="glass rounded-2xl p-6 border border-slate-700 space-y-4">
+          <div class="text-base font-bold text-slate-300">Version Gratuite</div>
+          <ul class="space-y-2 text-xs text-slate-400">
+            <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✓</span> 7 bases certifiées complètes (hémorragie, eau, abri, morsure…)</li>
+            <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✓</span> GPS satellite sans réseau + POI collaboratif</li>
+            <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✓</span> 100% hors-ligne · 0% tracking</li>
+            <li class="flex items-start gap-2"><span class="text-slate-600 mt-0.5">–</span> Inférence Gemma on-device (désactivée)</li>
+            <li class="flex items-start gap-2"><span class="text-slate-600 mt-0.5">–</span> Analyse langage naturel et vision caméra</li>
+          </ul>
+          <a href="https://github.com/marequete/SurvIA/releases/latest/download/SurvIA.apk"
+             class="block text-center py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition">
+            📥 Télécharger gratuitement
+          </a>
+        </div>
+        <div class="rounded-2xl p-6 bg-gradient-to-br from-amber-950/60 to-emerald-950/60 border border-amber-500/40 space-y-4 shadow-xl shadow-amber-900/20">
+          <div class="flex items-center justify-between">
+            <div class="text-base font-bold text-white">Licence Pro</div>
+            <div class="text-2xl font-black text-amber-400">19,90 €</div>
+          </div>
+          <ul class="space-y-2 text-xs text-slate-300">
+            <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✓</span> <strong>Tout</strong> de la version gratuite</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">★</span> Gemma 4 on-device actif (inférence locale complète)</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">★</span> Analyse de vos questions en langage naturel</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">★</span> Vision caméra — triage médical MARCH on-device</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">★</span> Lié à 1 seul appareil physique (clé Ed25519 matérielle)</li>
+            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">★</span> Paiement unique · pas d'abonnement · à vie</li>
+          </ul>
+          <button onclick="startStripeCheckout()"
+             class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition shadow-lg">
+            💳 Acheter ma Licence Pro — 19,90 €
+          </button>
+          <p class="text-[10px] text-slate-500 text-center">Paiement sécurisé via Stripe · QR Code d'activation immédiat</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ GPS & POI Collaboratif ══════════════════ -->
     <section id="view-gps" class="hidden space-y-4">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
