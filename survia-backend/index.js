@@ -17,7 +17,7 @@ const crypto   = require('crypto');
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 const app    = express();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_until_configured');
 const pool   = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
 const PRIVATE_KEY_HEX = process.env.ED25519_PRIVATE_KEY_HEX;
