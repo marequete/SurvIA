@@ -35,3 +35,8 @@
 # 5. Durcissement : masquer les noms de fichiers sources et lignes
 -renamesourcefileattribute SourceFile
 -keepattributes SourceFile,LineNumberTable
+
+# 6. Ignorer les classes d'annotation-processing embarquées (AutoValue / JavaPoet)
+-dontwarn javax.lang.model.**
+-dontwarn com.google.auto.value.**
+-dontwarn autovalue.shaded.**
