@@ -6,8 +6,14 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,7 +32,17 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.PlanarYUVLuminanceSource
+import com.google.zxing.common.HybridBinarizer
+import java.util.concurrent.Executors
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.survia.android.ai.GemmaModelManager
@@ -185,6 +201,42 @@ fun SurvIALockScreen(
     reason: LicenseManager.LicenseStatus,
     onLicenseActivated: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var showScanner by remember { mutableStateOf(false) }
+    var showManualEntry by remember { mutableStateOf(false) }
+    var manualInput by remember { mutableStateOf("") }
+    var isActivating by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val activateWithRaw: (String) -> Unit = { raw ->
+        if (!isActivating) {
+            isActivating = true
+            errorMessage = null
+            scope.launch {
+                val res = LicenseManager.activateOnline(raw, hardwareId)
+                isActivating = false
+                res.onSuccess { certificateJson ->
+                    onLicenseActivated(certificateJson)
+                }.onFailure { err ->
+                    errorMessage = err.message ?: "Échec de l'activation."
+                }
+            }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            errorMessage = null
+            showScanner = true
+        } else {
+            errorMessage = "Permission caméra refusée. Utilisez la saisie manuelle ci-dessous."
+            showManualEntry = true
+        }
+    }
+
     val reasonText = when (reason) {
         is LicenseManager.LicenseStatus.NotFound       -> "Aucune licence trouvée sur cet appareil."
         is LicenseManager.LicenseStatus.HardwareMismatch -> "Licence liée à un autre appareil."
@@ -215,17 +267,187 @@ fun SurvIALockScreen(
                 modifier = Modifier.padding(10.dp))
         }
         Spacer(modifier = Modifier.height(32.dp))
-        Text("Après votre achat, scannez le QR Code d'activation reçu par email ou sur la page de confirmation.",
+        Text("Après votre achat, scannez le QR Code d'activation reçu sur la page de confirmation.",
             color = Color(0xFF94A3B8), fontSize = 12.sp)
         Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = { /* Phase 4 : scanner QR Code survia://activate?token=... */ },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
-            shape = RoundedCornerShape(12.dp),
+
+        if (isActivating) {
+            CircularProgressIndicator(color = Color(0xFF10B981))
+            Spacer(modifier = Modifier.height(12.dp))
+            Text("Activation de la licence en cours…", color = Color(0xFF10B981), fontSize = 12.sp)
+        } else {
+            Button(
+                onClick = {
+                    val granted = ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.CAMERA
+                    ) == PackageManager.PERMISSION_GRANTED
+                    if (granted) {
+                        errorMessage = null
+                        showScanner = true
+                    } else {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("📷 Scanner le QR Code d'activation", color = Color(0xFF090D11),
+                    fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            TextButton(onClick = { showManualEntry = !showManualEntry }) {
+                Text(
+                    if (showManualEntry) "Masquer la saisie manuelle" else "Coller le token manuellement",
+                    color = Color(0xFF94A3B8),
+                    fontSize = 12.sp
+                )
+            }
+
+            if (showManualEntry) {
+                OutlinedTextField(
+                    value = manualInput,
+                    onValueChange = { manualInput = it },
+                    placeholder = { Text("survia://activate?token=srv_live_...", fontSize = 11.sp) },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFF10B981),
+                        unfocusedBorderColor = Color(0xFF334155)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { activateWithRaw(manualInput) },
+                    enabled = manualInput.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Activer avec ce token", color = Color(0xFF090D11), fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        if (errorMessage != null) {
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(errorMessage!!, color = Color(0xFFEF4444), fontSize = 12.sp)
+        }
+    }
+
+    if (showScanner) {
+        QrActivationScannerDialog(
+            onDismiss = { showScanner = false },
+            onQrDetected = { rawQr ->
+                showScanner = false
+                activateWithRaw(rawQr)
+            }
+        )
+    }
+}
+
+@Composable
+private fun QrActivationScannerDialog(
+    onDismiss: () -> Unit,
+    onQrDetected: (String) -> Unit
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
+    val reader = remember {
+        MultiFormatReader().apply {
+            setHints(mapOf(DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE)))
+        }
+    }
+    var detected by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            try {
+                ProcessCameraProvider.getInstance(context).get().unbindAll()
+            } catch (_: Throwable) {}
+            analysisExecutor.shutdown()
+        }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            color = Color(0xFF111820),
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("📷 Scanner le QR Code d'activation", color = Color(0xFF090D11),
-                fontWeight = FontWeight.Bold)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Scanner le QR Code SurvIA", color = Color.White,
+                    fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                AndroidView(
+                    factory = { ctx ->
+                        val previewView = PreviewView(ctx)
+                        val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+                        cameraProviderFuture.addListener({
+                            val cameraProvider = cameraProviderFuture.get()
+                            val preview = Preview.Builder().build().also {
+                                it.setSurfaceProvider(previewView.surfaceProvider)
+                            }
+                            val analysis = ImageAnalysis.Builder()
+                                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                                .build()
+                            analysis.setAnalyzer(analysisExecutor) { imageProxy ->
+                                try {
+                                    if (!detected) {
+                                        val buffer = imageProxy.planes[0].buffer
+                                        val bytes = ByteArray(buffer.remaining())
+                                        buffer.get(bytes)
+                                        val source = PlanarYUVLuminanceSource(
+                                            bytes,
+                                            imageProxy.width,
+                                            imageProxy.height,
+                                            0, 0,
+                                            imageProxy.width,
+                                            imageProxy.height,
+                                            false
+                                        )
+                                        val bitmap = BinaryBitmap(HybridBinarizer(source))
+                                        val text = reader.decodeWithState(bitmap).text
+                                        if (LicenseManager.extractTokenFromInput(text) != null) {
+                                            detected = true
+                                            ContextCompat.getMainExecutor(ctx).execute {
+                                                onQrDetected(text)
+                                            }
+                                        }
+                                    }
+                                } catch (_: Throwable) {
+                                    // Pas de QR dans cette frame
+                                } finally {
+                                    reader.reset()
+                                    imageProxy.close()
+                                }
+                            }
+                            cameraProvider.unbindAll()
+                            cameraProvider.bindToLifecycle(
+                                lifecycleOwner,
+                                CameraSelector.DEFAULT_BACK_CAMERA,
+                                preview,
+                                analysis
+                            )
+                        }, ContextCompat.getMainExecutor(ctx))
+                        previewView
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(320.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                TextButton(onClick = onDismiss) {
+                    Text("Annuler", color = Color(0xFF94A3B8))
+                }
+            }
         }
     }
 }

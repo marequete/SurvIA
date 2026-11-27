@@ -1,8 +1,13 @@
 package com.survia.android.security
 
 import android.content.Context
+import android.net.Uri
 import android.util.Base64
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import java.security.KeyFactory
 import java.security.Signature
 import java.security.spec.X509EncodedKeySpec
@@ -70,6 +75,58 @@ object LicenseManager {
 
     fun saveLicenseJson(context: Context, licenseJson: String) {
         java.io.File(context.filesDir, LICENSE_FILENAME).writeText(licenseJson)
+    }
+
+    /**
+     * Extrait le token d'activation depuis un QR Code (`survia://activate?token=...`)
+     * ou une saisie directe (`srv_live_...`).
+     */
+    fun extractTokenFromInput(raw: String): String? {
+        val trimmed = raw.trim()
+        if (trimmed.startsWith("survia://", ignoreCase = true)) {
+            return Uri.parse(trimmed).getQueryParameter("token")?.trim()?.takeIf { it.isNotEmpty() }
+        }
+        return trimmed.takeIf { it.startsWith("srv_") }
+    }
+
+    /**
+     * Active la licence auprès du serveur SurvIA et retourne le certificat Ed25519 JSON.
+     */
+    suspend fun activateOnline(rawInput: String, hardwareId: String): Result<String> = withContext(Dispatchers.IO) {
+        val token = extractTokenFromInput(rawInput)
+            ?: return@withContext Result.failure(IllegalArgumentException("QR Code ou token d'activation invalide."))
+        var conn: HttpURLConnection? = null
+        try {
+            val url = URL("https://survia-license.fly.dev/api/activate")
+            conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                connectTimeout = 10_000
+                readTimeout = 15_000
+                doOutput = true
+                setRequestProperty("Content-Type", "application/json; charset=utf-8")
+            }
+            val body = JSONObject().apply {
+                put("token", token)
+                put("hardware_id", hardwareId)
+            }.toString()
+            conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+
+            val code = conn.responseCode
+            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+            val text = stream?.bufferedReader()?.use { it.readText() } ?: ""
+            val json = JSONObject(text)
+
+            if (code in 200..299 && json.has("certificate")) {
+                Result.success(json.getString("certificate"))
+            } else {
+                val err = json.optString("error", "Erreur serveur ($code)")
+                Result.failure(IllegalStateException(err))
+            }
+        } catch (t: Throwable) {
+            Result.failure(t)
+        } finally {
+            conn?.disconnect()
+        }
     }
 
     private fun verifyEd25519(payload: ByteArray, signatureHex: String): Boolean {

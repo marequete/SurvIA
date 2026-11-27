@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.camera.camera2)
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
+    implementation("com.google.zxing:core:3.5.3")
 
     implementation(libs.play.services.location)
     implementation(libs.kotlinx.coroutines.android)
