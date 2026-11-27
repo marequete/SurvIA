@@ -16,7 +16,7 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        val expectedCertSha256 = System.getenv("RELEASE_CERT_SHA256") ?: ""
+        val expectedCertSha256 = (System.getenv("RELEASE_CERT_SHA256") ?: "").trim()
         buildConfigField("String", "EXPECTED_RELEASE_CERT_SHA256", "\"$expectedCertSha256\"")
     }
 
