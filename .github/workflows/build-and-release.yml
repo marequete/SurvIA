@@ -40,17 +40,41 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
+      - name: Prepare Release Keystore (if configured)
+        id: keystore
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > /tmp/survia-release.jks
+            echo "has_keystore=true" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 secret missing — falling back to assembleDebug"
+            echo "has_keystore=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build APK with Gradle 8.11.1
         run: |
           cd survia-app
-          gradle :androidApp:assembleDebug --stacktrace --info || (cat /home/runner/.gradle/daemon/*/daemon*.log || true; exit 1)
+          if [ "${{ steps.keystore.outputs.has_keystore }}" = "true" ]; then
+            gradle :androidApp:assembleRelease --stacktrace
+          else
+            gradle :androidApp:assembleDebug --stacktrace
+          fi
         env:
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+          ANDROID_KEYSTORE_PATH: ${{ steps.keystore.outputs.has_keystore == 'true' && '/tmp/survia-release.jks' || '' }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          RELEASE_CERT_SHA256: ${{ secrets.RELEASE_CERT_SHA256 }}
 
       - name: Rename APK for Distribution
         run: |
           mkdir -p release-output
-          cp survia-app/androidApp/build/outputs/apk/debug/*.apk release-output/SurvIA.apk
+          if [ "${{ steps.keystore.outputs.has_keystore }}" = "true" ]; then
+            cp survia-app/androidApp/build/outputs/apk/release/*-release.apk release-output/SurvIA.apk
+          else
+            cp survia-app/androidApp/build/outputs/apk/debug/*.apk release-output/SurvIA.apk
+          fi
           cp survia-app/assets/download-manifest.json release-output/download-manifest.json
 
       - name: Upload APK Artifact

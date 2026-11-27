@@ -8,6 +8,10 @@
 -keep class com.survia.tools.** { *; }
 -keepclassmembers class com.survia.tools.** { *; }
 
+# 2b. Préserver Ed25519 fallback (API < 33)
+-keep class net.i2p.crypto.eddsa.** { *; }
+-dontwarn net.i2p.crypto.eddsa.**
+
 # 3. Kotlinx Serialization & Coroutines
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.AnnotationsKt

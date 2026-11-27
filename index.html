@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurvIA • Banc d'Essai & Simulateur Tout-Terrain</title>
+  <title>SurvIA • Portail Officiel & Licence Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -34,14 +34,11 @@
     </div>
     <div class="flex items-center gap-2">
       <span class="badge-offline px-2.5 py-1 rounded-full text-[11px] font-semibold">100% HORS-LIGNE</span>
-      <button onclick="toggleTab('simulator')" id="tab-sim-btn" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold transition">
-        📱 Simulateur & Chat
+      <button onclick="toggleTab('qr')" id="tab-qr-btn" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold transition">
+        📷 Télécharger APK
       </button>
       <button onclick="toggleTab('gps')" id="tab-gps-btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
         🗺️ GPS & POI Collaboratif
-      </button>
-      <button onclick="toggleTab('qr')" id="tab-qr-btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
-        📷 QR Code APK
       </button>
       <button onclick="startStripeCheckout()" id="buy-pro-btn" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold transition shadow">
         💳 Licence Pro
@@ -62,144 +59,6 @@
   </div>
 
   <main class="max-w-6xl w-full mx-auto my-4 flex-1">
-
-    <!-- ════════════════════════════════════════════════════════════════════════
-         SECTION 1 : SIMULATEUR DE DIALOGUE & SKILLS PAR SITUATION
-         ════════════════════════════════════════════════════════════════════════ -->
-    <section id="view-simulator" class="space-y-4">
-      
-      <!-- Matrice des Skills par Situation (Architecture HAVEN) -->
-      <div class="glass p-3.5 rounded-2xl">
-        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
-          <div class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-            <span>⚡</span> Skills Spécialisés par Situation de Survie (HAVEN Matrix)
-          </div>
-          <span class="text-[10px] text-emerald-400 font-mono">Sélection rapide en 1 tap</span>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-          
-          <button onclick="activateSkill('water')" class="text-left p-2.5 rounded-xl bg-slate-900/90 hover:bg-sky-950/60 border border-slate-800 hover:border-sky-500 transition group">
-            <div class="text-base">💧</div>
-            <div class="text-xs font-bold text-sky-400 group-hover:text-sky-300">Eau & Filtre</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">FM 21-76 • Charbon</div>
-          </button>
-
-          <button onclick="activateSkill('wound')" class="text-left p-2.5 rounded-xl bg-slate-900/90 hover:bg-emerald-950/60 border border-slate-800 hover:border-emerald-500 transition group">
-            <div class="text-base">🩹</div>
-            <div class="text-xs font-bold text-emerald-400 group-hover:text-emerald-300">Plaies & Tétanos</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">Werner • Miel & Sel</div>
-          </button>
-
-          <button onclick="activateSkill('march')" class="text-left p-2.5 rounded-xl bg-slate-900/90 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500 transition group">
-            <div class="text-base">🩺</div>
-            <div class="text-xs font-bold text-rose-400 group-hover:text-rose-300">Trauma MARCH</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">Garrot • Hémorragie</div>
-          </button>
-
-          <button onclick="activateSkill('danger')" class="text-left p-2.5 rounded-xl bg-slate-900/90 hover:bg-amber-950/60 border border-slate-800 hover:border-amber-500 transition group">
-            <div class="text-base">⚠️</div>
-            <div class="text-xs font-bold text-amber-400 group-hover:text-amber-300">Sécurité Terrain</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">POI Utilisateur • Danger</div>
-          </button>
-
-          <button onclick="activateSkill('shelter')" class="text-left p-2.5 rounded-xl bg-slate-900/90 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500 transition group">
-            <div class="text-base">🏕️</div>
-            <div class="text-xs font-bold text-indigo-400 group-hover:text-indigo-300">Abri & Froid</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">Sol • Hypothermie</div>
-          </button>
-
-          <button onclick="activateSkill('poison')" class="text-left p-2.5 rounded-xl bg-slate-900/90 hover:bg-purple-950/60 border border-slate-800 hover:border-purple-500 transition group">
-            <div class="text-base">🍄</div>
-            <div class="text-xs font-bold text-purple-400 group-hover:text-purple-300">Garde-Fou Toxico</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">Champignons • 100% Bloqué</div>
-          </button>
-
-        </div>
-      </div>
-
-      <!-- Zone Principale : Chat + Télémétrie Active -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
-        <!-- Colonne Chat (7 cols) -->
-        <div class="lg:col-span-7 space-y-3">
-          <div class="flex items-center justify-between text-xs text-slate-400 px-1">
-            <span class="flex items-center gap-1.5 text-emerald-400 font-semibold">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Console de Dialogue SurvIA (Gemma 4 E4B IT / RAG 7 Bases)
-            </span>
-            <button onclick="clearChatSimulator()" class="hover:text-slate-200 transition">Effacer</button>
-          </div>
-
-          <!-- Chat Window -->
-          <div id="sim-chat-container" class="space-y-3 p-4 rounded-2xl bg-slate-950 border border-slate-800 min-h-[360px] max-h-[460px] overflow-y-auto">
-            <!-- Message de bienvenue -->
-            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 space-y-1.5">
-              <div class="text-emerald-400 font-bold flex items-center gap-1.5">
-                <span>🛡️</span> SurvIA initialisé • Mode 100% Hors-Ligne Actif
-              </div>
-              <p>Bases certifiées : Where There Is No Doctor, US Army FM 21-76, Smart-FirstAid, WikiMed, SurvivalRAG, kit-survie, SurvivalManual.</p>
-              <p class="text-[11px] text-sky-400">💡 Les points d'intérêt et signalements que vous ajoutez dans l'onglet <strong>GPS & POI</strong> sont automatiquement pris en compte par l'IA lors de ses diagnostics !</p>
-            </div>
-          </div>
-
-          <!-- Input Bar -->
-          <div class="flex gap-2">
-            <input type="text" id="sim-input" placeholder="Posez une question ou décrivez une urgence..."
-                   class="flex-1 px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
-                   onkeydown="if(event.key === 'Enter') handleSimSubmit()" />
-            <button onclick="handleSimSubmit()" class="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-lg shadow-emerald-950/50">
-              Envoyer
-            </button>
-          </div>
-        </div>
-
-        <!-- Colonne Radar & Télémétrie IA (5 cols) -->
-        <div class="lg:col-span-5 space-y-3">
-          
-          <!-- Mini Radar GPS -->
-          <div class="glass p-3.5 rounded-2xl space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                <span>📡</span> Radar GPS & POIs Locaux
-              </span>
-              <button onclick="refreshGpsLocation()" class="text-[10px] px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800 hover:bg-sky-900">
-                Fix GPS
-              </button>
-            </div>
-            
-            <div class="relative w-full aspect-square max-h-[190px] mx-auto rounded-xl border border-slate-800 radar-grid flex items-center justify-center overflow-hidden">
-              <canvas id="mini-radar-canvas" width="220" height="190" class="w-full h-full"></canvas>
-            </div>
-
-            <div class="text-[11px] font-mono text-slate-400 flex justify-between">
-              <span id="mini-gps-coords">Lat: 45.1885°N • Lon: 5.7245°E</span>
-              <span id="mini-poi-count" class="text-emerald-400">3 POIs actifs</span>
-            </div>
-          </div>
-
-          <!-- Preuves de Fonctionnement (console.table) -->
-          <div class="glass p-3.5 rounded-2xl space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-amber-400 uppercase tracking-wider text-[11px]">
-                🔬 Journal de Validation (console.table)
-              </span>
-              <button onclick="runDiagnosticProof()" class="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 hover:bg-amber-900">
-                Lancer Preuves
-              </button>
-            </div>
-            <div id="proof-container" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 font-mono text-[10px] text-slate-300 space-y-1 max-h-[140px] overflow-y-auto">
-              <div>✓ Base locale KMP chargée (7 référentiels)</div>
-              <div>✓ UserPoiStore initialisé (localStorage offline)</div>
-              <div>✓ Garde-fou toxico actif (sosies mortels bloqués)</div>
-              <div>✓ GPS Hardware écouté via navigator.geolocation</div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
 
     <!-- ════════════════════════════════════════════════════════════════════════
          SECTION 2 : GPS & POI COLLABORATIF (CARNET DE TERRAIN ENRICHI)
@@ -312,7 +171,7 @@
     <!-- ════════════════════════════════════════════════════════════════════════
          SECTION 3 : QR CODE & INSTALLATION MOBILE DIRECTE
          ════════════════════════════════════════════════════════════════════════ -->
-    <section id="view-qr" class="hidden grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+    <section id="view-qr" class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
       <div class="md:col-span-7 space-y-5">
         <div>
           <span class="text-xs uppercase tracking-wider text-emerald-400 font-semibold">Distribution Gratuite Clé en Main</span>
@@ -802,12 +661,10 @@
 
     function toggleTab(tab) {
       const views = {
-        simulator: document.getElementById("view-simulator"),
         gps: document.getElementById("view-gps"),
         qr: document.getElementById("view-qr")
       };
       const btns = {
-        simulator: document.getElementById("tab-sim-btn"),
         gps: document.getElementById("tab-gps-btn"),
         qr: document.getElementById("tab-qr-btn")
       };
@@ -824,8 +681,6 @@
 
       if (tab === 'gps') {
         renderPoiList();
-      } else if (tab === 'simulator') {
-        drawRadar();
       }
     }
 
@@ -917,7 +772,6 @@
     // ─── 6. INITIALISATION ───────────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
       loadPois();
-      runDiagnosticProof();
       checkStripeReturnSession();
 
       // QR Code Init

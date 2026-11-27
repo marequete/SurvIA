@@ -521,11 +521,12 @@ fun SurvIAMainScreen(
                             val isShelterQuery = containsAny(qLow, listOf("refuge", "abri", "froid", "bivouac"))
                             val isGeoQuery     = containsAny(qLow, listOf("gps", "coordonnees", "ou ", "carte", "position", "source", "refuge"))
 
-                            val kbResult = onExecuteTool("search_survival_kb", """{"query":"$userQ"}""")
+                            val queryPayload = org.json.JSONObject().put("query", userQ).toString()
+                            val kbResult = onExecuteTool("search_survival_kb", queryPayload)
 
-                            // ── SYNTHÈSE LLM LOCALE (Si Gemma actif, reformule avec empathie sans halluciner) ──
+                            // ── SYNTHÈSE LLM LOCALE (Si Gemma actif et hors garde-fou mortel, reformule sans halluciner) ──
                             var finalReplyText = kbResult.outputJson
-                            if (modelManager.isReady()) {
+                            if (modelManager.isReady() && !kbResult.isFatalGuardrailTriggered) {
                                 try {
                                     val prompt = """
                                         Tu es SurvIA, un expert de survie d'urgence calme, direct et bienveillant.
@@ -533,7 +534,7 @@ fun SurvIAMainScreen(
                                         Voici les données certifiées du protocole d'urgence :
                                         ${kbResult.outputJson}
                                         
-                                        Consigne vitale : Réponds directement à sa situation en t'appuyant rigoureusement sur ces données. Pas d'introduction superflue, sois rassurant, clair et opérationnel.
+                                        Consigne vitale : Réponds directement à sa situation en t'appuyant rigoureusement sur ces données. N'invente JAMAIS de dosage, posologie, coordonnée ou étape absente des données certifiées. Si une donnée manque, dis-le clairement. Pas d'introduction superflue, sois rassurant, clair et opérationnel.
                                     """.trimIndent()
                                     val aiText = modelManager.generateResponse(prompt).trim()
                                     if (aiText.isNotBlank()) {
@@ -549,7 +550,7 @@ fun SurvIAMainScreen(
                             var actionBtnUri  = kbResult.actionButtonUri
 
                             if (isGeoQuery && actionBtnUri == null) {
-                                val gpsResult = onExecuteTool("get_gps_and_map", """{"query":"$userQ"}""")
+                                val gpsResult = onExecuteTool("get_gps_and_map", queryPayload)
                                 actionBtnText = gpsResult.actionButtonText ?: actionBtnText
                                 actionBtnUri  = gpsResult.actionButtonUri  ?: actionBtnUri
                             }

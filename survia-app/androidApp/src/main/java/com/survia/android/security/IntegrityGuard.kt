@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import com.survia.android.BuildConfig
 import java.io.File
 import java.security.MessageDigest
 
@@ -15,9 +16,9 @@ import java.security.MessageDigest
  */
 object IntegrityGuard {
 
-    // À renseigner avec le SHA-256 hexadécimal (sans ':') du certificat Release officiel
-    // Laisser vide tant que les builds debug/CI sont utilisés pour les tests.
-    private const val EXPECTED_RELEASE_CERT_SHA256 = ""
+    // Injecté automatiquement par Gradle depuis la variable d'env CI RELEASE_CERT_SHA256
+    private val EXPECTED_RELEASE_CERT_SHA256: String
+        get() = BuildConfig.EXPECTED_RELEASE_CERT_SHA256
 
     fun enforceIntegrity(activity: Activity): Boolean {
         if (EXPECTED_RELEASE_CERT_SHA256.isNotBlank() &&

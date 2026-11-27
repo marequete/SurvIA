@@ -2,13 +2,19 @@ package com.survia.android.security
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.i2p.crypto.eddsa.EdDSAEngine
+import net.i2p.crypto.eddsa.EdDSAPublicKey
+import net.i2p.crypto.eddsa.spec.EdDSANamedCurveTable
+import net.i2p.crypto.eddsa.spec.EdDSAPublicKeySpec
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.KeyFactory
+import java.security.MessageDigest
 import java.security.Signature
 import java.security.spec.X509EncodedKeySpec
 
@@ -31,8 +37,8 @@ object LicenseManager {
     // Générée via : npm run generate-keys dans survia-backend/
     private const val PUBLIC_KEY_B64 = "MCowBQYDK2VwAyEArM1Vd3mB3HVbdGZNTB50rlXG1hVUfgxZ/bV+lAV9M0E="
 
-    // En mode développement (clé absente) : ne verrouille pas l'app
-    private const val DEV_MODE = true  // Passer à false en production
+    // Mode production : licence Ed25519 requise
+    private const val DEV_MODE = false
 
     private const val LICENSE_FILENAME = "license.json"
 
@@ -132,13 +138,24 @@ object LicenseManager {
     private fun verifyEd25519(payload: ByteArray, signatureHex: String): Boolean {
         return try {
             val pubKeyBytes = Base64.decode(PUBLIC_KEY_B64, Base64.DEFAULT)
-            val pubKey = KeyFactory.getInstance("Ed25519")
-                .generatePublic(X509EncodedKeySpec(pubKeyBytes))
-            val sig = Signature.getInstance("Ed25519")
-            sig.initVerify(pubKey)
-            sig.update(payload)
             val sigBytes = signatureHex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-            sig.verify(sigBytes)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val pubKey = KeyFactory.getInstance("Ed25519")
+                    .generatePublic(X509EncodedKeySpec(pubKeyBytes))
+                val sig = Signature.getInstance("Ed25519")
+                sig.initVerify(pubKey)
+                sig.update(payload)
+                sig.verify(sigBytes)
+            } else {
+                // Android 8.0–12 (API 26–32) : fallback Ed25519 via net.i2p.crypto:eddsa
+                val rawPubKey = pubKeyBytes.copyOfRange(pubKeyBytes.size - 32, pubKeyBytes.size)
+                val spec = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519)
+                val pubKey = EdDSAPublicKey(EdDSAPublicKeySpec(rawPubKey, spec))
+                val sig = EdDSAEngine(MessageDigest.getInstance(spec.hashAlgorithm))
+                sig.initVerify(pubKey)
+                sig.update(payload)
+                sig.verify(sigBytes)
+            }
         } catch (_: Throwable) {
             false
         }
