@@ -15,6 +15,15 @@ const Stripe   = require('stripe');
 const ed       = require('@noble/ed25519');
 const crypto   = require('crypto');
 
+// Configure SHA-512 pour @noble/ed25519 (v2.x etc.sha512Sync / v2.3+ hashes.sha512)
+if (ed.etc) {
+  ed.etc.sha512Sync = (...m) => crypto.createHash('sha512').update(Buffer.concat(m)).digest();
+}
+if (ed.hashes) {
+  ed.hashes.sha512 = (m) => crypto.createHash('sha512').update(m).digest();
+  ed.hashes.sha512Sync = (...m) => crypto.createHash('sha512').update(Buffer.concat(m)).digest();
+}
+
 // ─── Configuration ───────────────────────────────────────────────────────────
 const app    = express();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_until_configured');
@@ -110,40 +119,45 @@ app.post('/webhook/stripe', async (req, res) => {
 //   - bound_hardware_id == hardware_id → même appareil, réémission du certificat
 //   - bound_hardware_id != hardware_id → 403 Forbidden
 app.post('/api/activate', async (req, res) => {
-  const { token, hardware_id } = req.body;
+  try {
+    const { token, hardware_id } = req.body || {};
 
-  if (!token || !hardware_id) {
-    return res.status(400).json({ error: 'token and hardware_id required' });
-  }
+    if (!token || !hardware_id) {
+      return res.status(400).json({ error: 'token and hardware_id required' });
+    }
 
-  const { rows } = await pool.query(
-    'SELECT * FROM licenses WHERE token = $1',
-    [token]
-  );
-
-  if (rows.length === 0) {
-    return res.status(404).json({ error: 'Token not found' });
-  }
-
-  const license = rows[0];
-
-  if (license.status === 'PENDING_ACTIVATION' || license.bound_hardware_id === null) {
-    // Première activation — on bind le hardware_id
-    await pool.query(
-      `UPDATE licenses SET bound_hardware_id = $1, status = 'BOUND', activated_at = NOW()
-       WHERE token = $2`,
-      [hardware_id, token]
+    const { rows } = await pool.query(
+      'SELECT * FROM licenses WHERE token = $1',
+      [token]
     );
-    return res.json({ certificate: await signLicense(hardware_id, 'FULL_OFFLINE_PRO') });
-  }
 
-  if (license.bound_hardware_id === hardware_id) {
-    // Même appareil — réinstallation autorisée
-    return res.json({ certificate: await signLicense(hardware_id, 'FULL_OFFLINE_PRO') });
-  }
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Token not found' });
+    }
 
-  // Appareil différent — licence déjà consommée
-  return res.status(403).json({ error: 'License already bound to another device' });
+    const license = rows[0];
+
+    if (license.status === 'PENDING_ACTIVATION' || license.bound_hardware_id === null) {
+      // Première activation — on bind le hardware_id
+      await pool.query(
+        `UPDATE licenses SET bound_hardware_id = $1, status = 'BOUND', activated_at = NOW()
+         WHERE token = $2`,
+        [hardware_id, token]
+      );
+      return res.json({ certificate: await signLicense(hardware_id, 'FULL_OFFLINE_PRO') });
+    }
+
+    if (license.bound_hardware_id === hardware_id) {
+      // Même appareil — réinstallation autorisée
+      return res.json({ certificate: await signLicense(hardware_id, 'FULL_OFFLINE_PRO') });
+    }
+
+    // Appareil différent — licence déjà consommée
+    return res.status(403).json({ error: 'License already bound to another device' });
+  } catch (err) {
+    console.error('Activate error:', err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 // ─── Signature Ed25519 ────────────────────────────────────────────────────────
